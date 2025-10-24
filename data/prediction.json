@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2025-10-24T02:44:18.112579Z",
+  "generated_at_utc": "2025-10-24T03:46:14.191600+00:00",
   "next_1h_prediction": {
-    "BTC-USD": "HOLD",
-    "ETH-USD": "HOLD"
+    "BTC-USD": "UP",
+    "ETH-USD": "UP"
   },
   "method": "momentum_or_close_gt_SMA12",
-  "note": "Placeholder until first successful run."
+  "note": "Simple rule-based signal using last-hour momentum and SMA(12)."
 }
