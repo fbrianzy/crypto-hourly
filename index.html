@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Crypto Hourly — Harga BTC & ETH</title>
-  <meta name="description" content="Pantau harga Bitcoin (BTC) dan Ethereum (ETH) per jam lengkap dengan prediksi naik/turun untuk 1 jam berikutnya. Data otomatis dari yfinance, diperbarui tiap jam.">
+  <meta name="description" content="Pantau harga Bitcoin (BTC) dan Ethereum (ETH) per jam lengkap dengan prediksi naik/turun untuk 1 jam berikutnya. Data otomatis dari CryptoCompare, diperbarui tiap jam.">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="data:,">
   <style>
@@ -40,6 +40,7 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 8px;
     }
     
@@ -141,6 +142,8 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.5);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      min-height: 400px;
     }
     
     .card:hover {
@@ -155,9 +158,41 @@
       color: #111827;
     }
     
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    
     canvas {
-      width: 100% !important;
-      height: 300px !important;
+      max-width: 100%;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    .error-message {
+      color: #ef4444;
+      padding: 20px;
+      text-align: center;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      margin-top: 10px;
     }
     
     /* Footer */
@@ -242,7 +277,7 @@
   <div class="container">
     <header>
       <h1>BTC & ETH Hourly — Live Chart + Prediksi 1 Jam</h1>
-      <p class="subtitle">Sumber: yfinance · Auto-update per jam via GitHub Actions · Semua waktu UTC</p>
+      <p class="subtitle">Sumber: CryptoCompare API · Auto-update per jam via GitHub Actions</p>
     </header>
 
     <section id="pred"></section>
@@ -250,11 +285,17 @@
     <section class="grid" aria-label="Crypto charts">
       <div class="card">
         <h2>Bitcoin (BTC-USD)</h2>
-        <canvas id="chart-btc"></canvas>
+        <div class="chart-container">
+          <div class="spinner"></div>
+          <canvas id="chart-btc"></canvas>
+        </div>
       </div>
       <div class="card">
         <h2>Ethereum (ETH-USD)</h2>
-        <canvas id="chart-eth"></canvas>
+        <div class="chart-container">
+          <div class="spinner"></div>
+          <canvas id="chart-eth"></canvas>
+        </div>
       </div>
     </section>
 
@@ -262,114 +303,208 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
   <script>
-    async function loadJSON(path){ const r = await fetch(path + '?v=' + Date.now()); return r.json(); }
-    function badge(label){
+    async function loadJSON(path) {
+      const r = await fetch(path + '?v=' + Date.now());
+      if (!r.ok) throw new Error(`Failed to load ${path}: ${r.status}`);
+      return r.json();
+    }
+
+    function badge(label) {
       const cls = label === 'UP' ? 'badge up' : label === 'DOWN' ? 'badge down' : 'badge hold';
       return `<span class="${cls}">${label}</span>`;
     }
-    function toLocal(ts){ try { return new Date(ts).toLocaleString('id-ID', {hour12:false}); } catch { return ts; } }
 
-    async function main(){
-      const prices = await loadJSON('./data/prices.json');
-      const pred   = await loadJSON('./data/prediction.json');
-
-      // Prediksi
-      const p = pred.next_1h_prediction || {};
-      document.getElementById('pred').innerHTML = `
-        <h2>Prediksi 1 Jam Berikutnya</h2>
-        <div class="pred-badges">
-          <div class="pred-item">
-            <div class="pred-label">BTC-USD</div>
-            ${badge(p['BTC-USD'] || 'HOLD')}
-          </div>
-          <div class="pred-item">
-            <div class="pred-label">ETH-USD</div>
-            ${badge(p['ETH-USD'] || 'HOLD')}
-          </div>
-        </div>
-        <div class="pred-meta">Dibuat: ${toLocal(pred.generated_at_utc)} · Metode: ${pred.method}</div>
-      `;
-
-      // Chart BTC & ETH
-      function buildChart(canvasId, series){
-        const ctx = document.getElementById(canvasId);
-        const labels = series.map(d => new Date(d.ts_utc));
-        const data   = series.map(d => d.close);
-        
-        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
-        gradient.addColorStop(1, 'rgba(102, 126, 234, 0)');
-        
-        new Chart(ctx, {
-          type: 'line',
-          data: { 
-            labels, 
-            datasets: [{ 
-              label: 'Close',
-              data,
-              borderColor: '#667eea',
-              backgroundColor: gradient,
-              borderWidth: 3,
-              fill: true,
-              tension: 0.4,
-              pointRadius: 0,
-              pointHoverRadius: 6,
-              pointHoverBackgroundColor: '#667eea',
-              pointHoverBorderColor: '#fff',
-              pointHoverBorderWidth: 2
-            }] 
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            parsing: false,
-            interaction: {
-              intersect: false,
-              mode: 'index'
-            },
-            scales: {
-              x: { 
-                type: 'time',
-                time: { unit: 'hour', tooltipFormat: 'yyyy-MM-dd HH:mm' },
-                grid: { display: false },
-                ticks: { color: '#6b7280' }
-              },
-              y: { 
-                beginAtZero: false,
-                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                ticks: { color: '#6b7280' }
-              }
-            },
-            plugins: { 
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                padding: 12,
-                cornerRadius: 8,
-                titleColor: '#fff',
-                bodyColor: '#fff',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1
-              }
-            }
-          }
-        });
+    function toLocal(ts) {
+      try {
+        return new Date(ts).toLocaleString('id-ID', { hour12: false });
+      } catch {
+        return ts;
       }
-
-      buildChart('chart-btc', prices.series['BTC-USD']);
-      buildChart('chart-eth', prices.series['ETH-USD']);
-
-      const lastBadge = document.getElementById('last-badge');
-      lastBadge.textContent = "Updated: " + toLocal(prices.generated_at_utc);
-      lastBadge.classList.remove('loading');
-
-      document.getElementById('foot').textContent =
-        `Last data: ${toLocal(prices.latest['BTC-USD'].last_ts_utc)} (BTC), ${toLocal(prices.latest['ETH-USD'].last_ts_utc)} (ETH) · Interval ${prices.interval}, Period ${prices.period}`;
     }
-    main().catch(console.error);
+
+    function hideSpinner(containerId) {
+      const container = document.getElementById(containerId).parentElement;
+      const spinner = container.querySelector('.spinner');
+      if (spinner) spinner.style.display = 'none';
+    }
+
+    function showError(canvasId, message) {
+      const canvas = document.getElementById(canvasId);
+      const container = canvas.parentElement;
+      hideSpinner(canvasId);
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = message;
+      container.appendChild(errorDiv);
+    }
+
+    async function main() {
+      try {
+        console.log('Loading data...');
+        const prices = await loadJSON('./data/prices.json');
+        const pred = await loadJSON('./data/prediction.json');
+
+        console.log('Prices data:', prices);
+        console.log('Prediction data:', pred);
+
+        // Prediksi
+        const p = pred.next_1h_prediction || {};
+        document.getElementById('pred').innerHTML = `
+          <h2>Prediksi 1 Jam Berikutnya</h2>
+          <div class="pred-badges">
+            <div class="pred-item">
+              <div class="pred-label">BTC-USD</div>
+              ${badge(p['BTC-USD'] || 'HOLD')}
+            </div>
+            <div class="pred-item">
+              <div class="pred-label">ETH-USD</div>
+              ${badge(p['ETH-USD'] || 'HOLD')}
+            </div>
+          </div>
+          <div class="pred-meta">Dibuat: ${toLocal(pred.generated_at_utc)} · Metode: ${pred.method}</div>
+        `;
+
+        // Chart BTC & ETH
+        function buildChart(canvasId, series, label) {
+          try {
+            console.log(`Building chart for ${label}, data points:`, series.length);
+            
+            if (!series || series.length === 0) {
+              throw new Error('No data available');
+            }
+
+            hideSpinner(canvasId);
+            
+            const ctx = document.getElementById(canvasId);
+            const labels = series.map(d => new Date(d.ts_utc));
+            const data = series.map(d => d.close);
+            
+            console.log(`${label} - First timestamp:`, labels[0]);
+            console.log(`${label} - Last timestamp:`, labels[labels.length - 1]);
+            console.log(`${label} - First price:`, data[0]);
+            console.log(`${label} - Last price:`, data[data.length - 1]);
+
+            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0)');
+
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Price (USD)',
+                  data,
+                  borderColor: '#667eea',
+                  backgroundColor: gradient,
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 0,
+                  pointHoverRadius: 6,
+                  pointHoverBackgroundColor: '#667eea',
+                  pointHoverBorderColor: '#fff',
+                  pointHoverBorderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                  intersect: false,
+                  mode: 'index'
+                },
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'MMM d, HH:mm'
+                      },
+                      tooltipFormat: 'PPpp'
+                    },
+                    grid: { display: false },
+                    ticks: { color: '#6b7280', maxRotation: 45 }
+                  },
+                  y: {
+                    beginAtZero: false,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                      color: '#6b7280',
+                      callback: function(value) {
+                        return '$' + value.toLocaleString();
+                      }
+                    }
+                  }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    callbacks: {
+                      label: function(context) {
+                        return 'Price: $' + context.parsed.y.toLocaleString();
+                      }
+                    }
+                  }
+                }
+              }
+            });
+
+            console.log(`✓ Chart ${label} rendered successfully`);
+          } catch (error) {
+            console.error(`Error building chart ${label}:`, error);
+            showError(canvasId, `Failed to load chart: ${error.message}`);
+          }
+        }
+
+        // Build charts
+        if (prices.series && prices.series['BTC-USD']) {
+          buildChart('chart-btc', prices.series['BTC-USD'], 'BTC-USD');
+        } else {
+          showError('chart-btc', 'No BTC data available');
+        }
+
+        if (prices.series && prices.series['ETH-USD']) {
+          buildChart('chart-eth', prices.series['ETH-USD'], 'ETH-USD');
+        } else {
+          showError('chart-eth', 'No ETH data available');
+        }
+
+        // Update status badge
+        const lastBadge = document.getElementById('last-badge');
+        lastBadge.textContent = "Updated: " + toLocal(prices.generated_at_utc);
+        lastBadge.classList.remove('loading');
+
+        // Update footer
+        document.getElementById('foot').textContent =
+          `Last data: ${toLocal(prices.latest['BTC-USD'].last_ts_utc)} (BTC), ${toLocal(prices.latest['ETH-USD'].last_ts_utc)} (ETH) · Interval ${prices.interval}, Period ${prices.period}`;
+
+        console.log('✓ All charts loaded successfully');
+      } catch (error) {
+        console.error('Main error:', error);
+        document.getElementById('last-badge').textContent = 'Error loading data';
+        document.getElementById('last-badge').style.background = '#ef4444';
+        alert('Failed to load crypto data. Please check console for details.');
+      }
+    }
+
+    // Start loading when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', main);
+    } else {
+      main();
+    }
   </script>
 </body>
 </html>
