@@ -2,7 +2,7 @@ name: Hourly Data & Prediction
 
 on:
   schedule:
-    - cron: '0 * * * *'   # tiap jam UTC (WIB = UTC+7)
+    - cron: '*/30 * * * *'   # tiap jam UTC (WIB = UTC+7)
   workflow_dispatch:
 
 permissions:
