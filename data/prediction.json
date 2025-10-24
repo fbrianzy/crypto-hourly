@@ -1,0 +1,9 @@
+{
+  "generated_at_utc": "2025-10-24T02:44:18.112579Z",
+  "next_1h_prediction": {
+    "BTC-USD": "HOLD",
+    "ETH-USD": "HOLD"
+  },
+  "method": "momentum_or_close_gt_SMA12",
+  "note": "Placeholder until first successful run."
+}

@@ -1,0 +1,19 @@
+{
+  "generated_at_utc": "2025-10-24T02:44:18.112579Z",
+  "interval": "1h",
+  "period": "7d",
+  "series": {
+    "BTC-USD": [],
+    "ETH-USD": []
+  },
+  "latest": {
+    "BTC-USD": {
+      "last_ts_utc": "2025-10-24T02:44:18.112579Z",
+      "last_close": 0.0
+    },
+    "ETH-USD": {
+      "last_ts_utc": "2025-10-24T02:44:18.112579Z",
+      "last_close": 0.0
+    }
+  }
+}

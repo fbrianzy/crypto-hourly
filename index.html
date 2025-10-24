@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crypto Hourly – Harga BTC & ETH + Prediksi 1 Jam</title>
+  <meta name="description" content="Pantau harga Bitcoin (BTC) dan Ethereum (ETH) per jam lengkap dengan prediksi naik/turun untuk 1 jam berikutnya. Data otomatis dari yfinance, diperbarui tiap jam.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="data:,">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;max-width:1000px;margin:24px auto;padding:0 12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .card{border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:600}
+    .up{background:#ecfdf5;color:#065f46}
+    .down{background:#fef2f2;color:#991b1b}
+    .hold{background:#eff6ff;color:#1e40af}
+    .muted{color:#6b7280;font-size:14px}
+    canvas{width:100%;height:320px}
+    a{color:#2563eb;text-decoration:none}
+    a:hover{text-decoration:underline}
+    @media(max-width:800px){.grid{grid-template-columns:1fr}}
+    .pill{position:fixed;top:12px;right:12px;padding:6px 10px;border-radius:999px;background:#111827;color:#f9fafb;font-size:12px;opacity:.9}
+  </style>
+</head>
+<body>
+  <div id="last-badge" class="pill">Loading…</div>
+
+  <header>
+    <h1>BTC & ETH Hourly — Live Chart + Prediksi 1 Jam</h1>
+    <p class="muted">Sumber: yfinance · Auto-update per jam via GitHub Actions · Semua waktu UTC.</p>
+  </header>
+
+  <section id="pred" class="card"></section>
+
+  <section class="grid" aria-label="Crypto charts">
+    <div class="card"><h2>Bitcoin (BTC-USD)</h2><canvas id="chart-btc"></canvas></div>
+    <div class="card"><h2>Ethereum (ETH-USD)</h2><canvas id="chart-eth"></canvas></div>
+  </section>
+
+  <p class="muted" id="foot"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
