@@ -3,46 +3,373 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Crypto Hourly – Harga BTC & ETH + Prediksi 1 Jam</title>
+  <title>Crypto Hourly — Harga BTC & ETH</title>
   <meta name="description" content="Pantau harga Bitcoin (BTC) dan Ethereum (ETH) per jam lengkap dengan prediksi naik/turun untuk 1 jam berikutnya. Data otomatis dari yfinance, diperbarui tiap jam.">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="data:,">
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;max-width:1000px;margin:24px auto;padding:0 12px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-    .card{border:1px solid #e5e7eb;border-radius:16px;padding:16px}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:600}
-    .up{background:#ecfdf5;color:#065f46}
-    .down{background:#fef2f2;color:#991b1b}
-    .hold{background:#eff6ff;color:#1e40af}
-    .muted{color:#6b7280;font-size:14px}
-    canvas{width:100%;height:320px}
-    a{color:#2563eb;text-decoration:none}
-    a:hover{text-decoration:underline}
-    @media(max-width:800px){.grid{grid-template-columns:1fr}}
-    .pill{position:fixed;top:12px;right:12px;padding:6px 10px;border-radius:999px;background:#111827;color:#f9fafb;font-size:12px;opacity:.9}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #1f2937;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Header */
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: #6b7280;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    
+    /* Prediction Card */
+    #pred {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+    
+    #pred h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: white;
+    }
+    
+    .pred-badges {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    
+    .pred-item {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 16px 24px;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .pred-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    
+    .up {
+      background: #10b981;
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .down {
+      background: #ef4444;
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    .hold {
+      background: #f59e0b;
+      color: white;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    
+    .pred-meta {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Chart Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #111827;
+    }
+    
+    canvas {
+      width: 100% !important;
+      height: 300px !important;
+    }
+    
+    /* Footer */
+    .footer {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      color: #6b7280;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    /* Status Badge */
+    .status-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Loading Animation */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .loading {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    /* Responsive */
+    @media(max-width: 768px) {
+      body { padding: 12px; }
+      
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      header {
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      #pred {
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      
+      .pred-badges {
+        flex-direction: column;
+      }
+      
+      .status-badge {
+        top: 12px;
+        right: 12px;
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div id="last-badge" class="pill">Loading…</div>
+  <div class="status-badge loading" id="last-badge">Loading...</div>
 
-  <header>
-    <h1>BTC & ETH Hourly — Live Chart + Prediksi 1 Jam</h1>
-    <p class="muted">Sumber: yfinance · Auto-update per jam via GitHub Actions · Semua waktu UTC.</p>
-  </header>
+  <div class="container">
+    <header>
+      <h1>BTC & ETH Hourly — Live Chart + Prediksi 1 Jam</h1>
+      <p class="subtitle">Sumber: yfinance · Auto-update per jam via GitHub Actions · Semua waktu UTC</p>
+    </header>
 
-  <section id="pred" class="card"></section>
+    <section id="pred"></section>
 
-  <section class="grid" aria-label="Crypto charts">
-    <div class="card"><h2>Bitcoin (BTC-USD)</h2><canvas id="chart-btc"></canvas></div>
-    <div class="card"><h2>Ethereum (ETH-USD)</h2><canvas id="chart-eth"></canvas></div>
-  </section>
+    <section class="grid" aria-label="Crypto charts">
+      <div class="card">
+        <h2>Bitcoin (BTC-USD)</h2>
+        <canvas id="chart-btc"></canvas>
+      </div>
+      <div class="card">
+        <h2>Ethereum (ETH-USD)</h2>
+        <canvas id="chart-eth"></canvas>
+      </div>
+    </section>
 
-  <p class="muted" id="foot"></p>
+    <footer class="footer" id="foot"></footer>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
-  <script src="./app.js"></script>
+  <script>
+    async function loadJSON(path){ const r = await fetch(path + '?v=' + Date.now()); return r.json(); }
+    function badge(label){
+      const cls = label === 'UP' ? 'badge up' : label === 'DOWN' ? 'badge down' : 'badge hold';
+      return `<span class="${cls}">${label}</span>`;
+    }
+    function toLocal(ts){ try { return new Date(ts).toLocaleString('id-ID', {hour12:false}); } catch { return ts; } }
+
+    async function main(){
+      const prices = await loadJSON('./data/prices.json');
+      const pred   = await loadJSON('./data/prediction.json');
+
+      // Prediksi
+      const p = pred.next_1h_prediction || {};
+      document.getElementById('pred').innerHTML = `
+        <h2>Prediksi 1 Jam Berikutnya</h2>
+        <div class="pred-badges">
+          <div class="pred-item">
+            <div class="pred-label">BTC-USD</div>
+            ${badge(p['BTC-USD'] || 'HOLD')}
+          </div>
+          <div class="pred-item">
+            <div class="pred-label">ETH-USD</div>
+            ${badge(p['ETH-USD'] || 'HOLD')}
+          </div>
+        </div>
+        <div class="pred-meta">Dibuat: ${toLocal(pred.generated_at_utc)} · Metode: ${pred.method}</div>
+      `;
+
+      // Chart BTC & ETH
+      function buildChart(canvasId, series){
+        const ctx = document.getElementById(canvasId);
+        const labels = series.map(d => new Date(d.ts_utc));
+        const data   = series.map(d => d.close);
+        
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
+        gradient.addColorStop(1, 'rgba(102, 126, 234, 0)');
+        
+        new Chart(ctx, {
+          type: 'line',
+          data: { 
+            labels, 
+            datasets: [{ 
+              label: 'Close',
+              data,
+              borderColor: '#667eea',
+              backgroundColor: gradient,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#667eea',
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 2
+            }] 
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            parsing: false,
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            },
+            scales: {
+              x: { 
+                type: 'time',
+                time: { unit: 'hour', tooltipFormat: 'yyyy-MM-dd HH:mm' },
+                grid: { display: false },
+                ticks: { color: '#6b7280' }
+              },
+              y: { 
+                beginAtZero: false,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: { color: '#6b7280' }
+              }
+            },
+            plugins: { 
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                padding: 12,
+                cornerRadius: 8,
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
+              }
+            }
+          }
+        });
+      }
+
+      buildChart('chart-btc', prices.series['BTC-USD']);
+      buildChart('chart-eth', prices.series['ETH-USD']);
+
+      const lastBadge = document.getElementById('last-badge');
+      lastBadge.textContent = "Updated: " + toLocal(prices.generated_at_utc);
+      lastBadge.classList.remove('loading');
+
+      document.getElementById('foot').textContent =
+        `Last data: ${toLocal(prices.latest['BTC-USD'].last_ts_utc)} (BTC), ${toLocal(prices.latest['ETH-USD'].last_ts_utc)} (ETH) · Interval ${prices.interval}, Period ${prices.period}`;
+    }
+    main().catch(console.error);
+  </script>
 </body>
 </html>
