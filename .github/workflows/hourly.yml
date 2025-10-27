@@ -2,7 +2,8 @@ name: Hourly Data & Prediction
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # tiap jam UTC (WIB = UTC+7)
+    - cron: '0,30 * * * *'    
+    - cron: '5,35 * * * *'    
   workflow_dispatch:
 
 permissions:
@@ -16,6 +17,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -26,17 +35,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate data & prediction
-        run: python scripts/fetch_predict.py
+      - name: Guard - skip if last run < 20 minutes
+        run: |
+          FILE="data/_timestamp.txt"
+          if [ -f "$FILE" ]; then
+            LAST=$(date -u -d "$(cat $FILE)" +%s || true)
+            NOW=$(date -u +%s)
+            DIFF=$(( NOW - LAST ))
+            echo "Last run was $DIFF seconds ago"
+            if [ $DIFF -lt 1200 ]; then
+              echo "Recent run detected (< 20 min). Skipping this schedule."
+              exit 0
+            fi
+          fi
 
-      - name: Commit & push if changed (as fbrianzy)
+      - name: Generate data & prediction
+        run: |
+          python scripts/fetch_predict.py
+          # Tulis timestamp agar SELALU ada perubahan di repo
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > data/_timestamp.txt
+
+      - name: Commit & push (as fbrianzy)
         run: |
           git config user.name "fbrianzy"
           git config user.email "164667693+fbrianzy@users.noreply.github.com"
-          if ! git diff --quiet; then
-            git add data/*.json
-            git commit -m "Hourly update by fbrianzy: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            git push
-          else
-            echo "No changes to commit."
-          fi
+          git add data/*.json data/_timestamp.txt
+          git commit -m "Auto update by fbrianzy: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "Nothing to commit"
+          git push || echo "Nothing to push"
+
+      - name: Show last commit (debug)
+        run: git log -1 --pretty=fuller
