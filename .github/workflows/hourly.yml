@@ -42,7 +42,7 @@ jobs:
             NOW=$(date -u +%s)
             DIFF=$(( NOW - LAST ))
             echo "Last run was $DIFF seconds ago"
-            if [ $DIFF -lt 1200 ]; then
+            if [ $DIFF -lt 600 ]; then
               echo "Recent run detected (< 20 min). Skipping this schedule."
               exit 0
             fi
