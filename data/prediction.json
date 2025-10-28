@@ -1,8 +1,8 @@
 {
-  "generated_at_utc": "2025-10-28T21:41:44.237769+00:00",
+  "generated_at_utc": "2025-10-28T21:55:04.499360+00:00",
   "next_1h_prediction": {
     "BTC-USD": "UP",
-    "ETH-USD": "DOWN"
+    "ETH-USD": "UP"
   },
   "method": "momentum_or_close_gt_SMA12",
   "note": "Simple rule-based signal using last-hour momentum and SMA(12)."
