@@ -1,7 +1,7 @@
 {
-  "generated_at_utc": "2026-01-18T15:58:17.714940+00:00",
+  "generated_at_utc": "2026-01-18T16:35:32.678171+00:00",
   "next_1h_prediction": {
-    "BTC-USD": "UP",
+    "BTC-USD": "DOWN",
     "ETH-USD": "UP"
   },
   "method": "momentum_or_close_gt_SMA12",
