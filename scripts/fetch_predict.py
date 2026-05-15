@@ -14,7 +14,7 @@ MAX_RETRIES = 3
 RETRY_DELAY = 3
 
 # Discord
-WEBHOOK_URL = os.environ.get("CRYPTO_WEBHOOK_DOLENCORD", "")
+WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK", "")
 
 # Coin meta for embeds
 COIN_META = {
