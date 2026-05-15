@@ -50,7 +50,7 @@ jobs:
 
       - name: Generate data & prediction
         env:
-          CRYPTO_WEBHOOK_DOLENCORD: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           python scripts/fetch_predict.py
           # Tulis timestamp agar SELALU ada perubahan di repo
