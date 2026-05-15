@@ -238,8 +238,10 @@ def build_coin_embed(ticker, df, signal, generated_at):
             },
         ],
         "footer": {
-            "text": f"CryptoCompare · {generated_at}  •  Metode: momentum_or_close_gt_SMA12",
+            "text": f"Crypto Bot by @fbrianzy  •  CryptoCompare · {generated_at}  •  momentum_or_close_gt_SMA12",
+            "icon_url": "https://github.com/fbrianzy.png",
         },
+        "url": "https://fbrianzy.github.io/crypto-hourly/",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return embed
@@ -273,12 +275,14 @@ def send_discord_webhook(all_data, preds, generated_at):
         "## 🕐 Crypto Hourly Update\n"
         + "  ·  ".join(summary_parts)
         + f"\n-# Auto-update · {now_str}"
+        + f"  ·  [Live Chart](<https://fbrianzy.github.io/crypto-hourly/>)"
+        + f"  ·  [GitHub](<https://github.com/fbrianzy/crypto-hourly/>)"
     )
 
     payload = {
         "content": content,
         "embeds": embeds,
-        "username": "CryptoBot 🤖",
+        "username": "Crypto Bot by @fbrianzy",
         "avatar_url": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
     }
 
