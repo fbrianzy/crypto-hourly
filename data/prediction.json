@@ -1,9 +1,9 @@
 {
-  "generated_at_utc": "2026-05-16T04:47:26.662253+00:00",
+  "generated_at_utc": "2026-05-16T05:53:20.082108+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
-  "method": "momentum_or_close_gt_SMA12",
-  "note": "Simple rule-based signal using last-hour momentum and SMA(12)."
+  "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
+  "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD."
 }
