@@ -1,10 +1,52 @@
 {
-  "generated_at_utc": "2026-05-16T06:21:46.574429+00:00",
+  "generated_at_utc": "2026-05-16T06:28:02.618777+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
   "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
   "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-  "ai_insight": "BTC sedang mengalami tren penurunan dengan RSI yang rendah, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan dalam satu jam dan tiga jam terakhir. EMA12 juga berada di bawah EMA26, menunjukkan tren penurunan.\n\nETH juga sedang mengalami tren penurunan dengan RSI yang rendah, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan dalam satu jam dan tiga jam terakhir, dengan EMA12 berada"
+  "ai_insight": "BTC sedang mengalami penurunan dengan RSI yang rendah, menunjukkan bahwa koin ini mungkin akan terus turun dalam waktu dekat. Indikator MOM juga menunjukkan penurunan dalam 1 jam dan 3 jam terakhir.\n\nETH juga mengalami penurunan dengan RSI yang rendah, menunjukkan bahwa koin ini mungkin akan terus turun dalam waktu dekat. Indikator MOM juga menunjukkan penurunan dalam 1 jam dan 3 jam terakhir.",
+  "indicators": {
+    "BTC-USD": {
+      "last": 78773.03,
+      "mom_1h": -0.2702613737790682,
+      "mom_3h": -0.3371352298534247,
+      "sma12": 79027.85583333333,
+      "ema12": 79007.88706814469,
+      "ema26": 79397.06346187863,
+      "rsi14": 37.01261058415302,
+      "bb_lo": 78299.26194540133,
+      "bb_mid": 79212.3865,
+      "bb_hi": 80125.51105459865,
+      "votes": 0,
+      "vote_map": {
+        "mom_1h": false,
+        "mom_3h": false,
+        "ema_x": false,
+        "rsi": false,
+        "bb_pos": false
+      }
+    },
+    "ETH-USD": {
+      "last": 2218.87,
+      "mom_1h": -0.24905480554393566,
+      "mom_3h": -0.3699862153194178,
+      "sma12": 2223.3416666666667,
+      "ema12": 2223.5193911452106,
+      "ema26": 2229.9947523436686,
+      "rsi14": 36.46213934736048,
+      "bb_lo": 2203.914393692594,
+      "bb_mid": 2225.8085,
+      "bb_hi": 2247.7026063074063,
+      "votes": 0,
+      "vote_map": {
+        "mom_1h": false,
+        "mom_3h": false,
+        "ema_x": false,
+        "rsi": false,
+        "bb_pos": false
+      }
+    }
+  }
 }
