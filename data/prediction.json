@@ -1,9 +1,10 @@
 {
-  "generated_at_utc": "2026-05-16T05:57:25.156026+00:00",
+  "generated_at_utc": "2026-05-16T06:21:46.574429+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
   "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
-  "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD."
+  "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
+  "ai_insight": "BTC sedang mengalami tren penurunan dengan RSI yang rendah, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan dalam satu jam dan tiga jam terakhir. EMA12 juga berada di bawah EMA26, menunjukkan tren penurunan.\n\nETH juga sedang mengalami tren penurunan dengan RSI yang rendah, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan dalam satu jam dan tiga jam terakhir, dengan EMA12 berada"
 }
