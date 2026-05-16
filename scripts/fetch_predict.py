@@ -469,10 +469,30 @@ def main():
     print("\nGroq insight...")
     insight = get_groq_insight(all_inds, all_signals)
 
+    # Serialize indicators (buang vote_map booleans jadi aman di JSON)
+    serialized_inds = {}
+    for ticker, ind in all_inds.items():
+        serialized_inds[ticker] = {
+            "last":    ind.get("last"),
+            "mom_1h":  ind.get("mom_1h"),
+            "mom_3h":  ind.get("mom_3h"),
+            "sma12":   ind.get("sma12"),
+            "ema12":   ind.get("ema12"),
+            "ema26":   ind.get("ema26"),
+            "rsi14":   ind.get("rsi14"),
+            "bb_lo":   ind.get("bb_lo"),
+            "bb_mid":  ind.get("bb_mid"),
+            "bb_hi":   ind.get("bb_hi"),
+            "votes":   ind.get("votes"),
+            "vote_map": {k: bool(v) for k, v in (ind.get("vote_map") or {}).items()},
+        }
+
     write_json({"generated_at_utc": now_utc, "next_1h_prediction": all_signals,
                 "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
                 "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-                "ai_insight": insight if insight else None}, "prediction.json")
+                "ai_insight": insight if insight else None,
+                "indicators": serialized_inds}, "prediction.json")
+    
     print("\nJSON written")
 
     print("\nBuilding card...")
