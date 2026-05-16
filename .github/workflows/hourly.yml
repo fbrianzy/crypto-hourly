@@ -2,7 +2,7 @@ name: Hourly Data & Prediction
 
 on:
   schedule:
-    - cron: '3,18,33,48 * * * *'  
+    - cron: '3,18,33,48 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -39,11 +39,11 @@ jobs:
         run: |
           FILE="data/_timestamp.txt"
           if [ -f "$FILE" ]; then
-            LAST=\( (date -u -d " \)(cat $FILE)" +%s || true)
+            LAST=\( (date -u -d " \)(cat $FILE)" +%s 2>/dev/null || echo 0)
             NOW=$(date -u +%s)
             DIFF=$(( NOW - LAST ))
             echo "Last run was $DIFF seconds ago"
-            if [ $DIFF -lt 720 ]; then      # 12 menit
+            if [ $DIFF -lt 720 ]; then
               echo "Recent run detected (< 12 min). Skipping this schedule."
               exit 0
             fi
@@ -66,7 +66,6 @@ jobs:
           git config user.email "164667693+fbrianzy@users.noreply.github.com"
           
           git add data/*.json data/_timestamp.txt
-          
           git commit -m "Auto update by fbrianzy: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "Nothing to commit"
           git push || echo "Nothing to push"
 
