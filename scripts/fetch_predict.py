@@ -179,7 +179,7 @@ def get_groq_insight(all_inds, all_signals):
         r = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
-            json={"model": "llama3-8b-8192", "messages": [{"role": "user", "content": prompt}],
+            json={"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": prompt}],
                   "max_tokens": 130, "temperature": 0.4},
             timeout=20,
         )
