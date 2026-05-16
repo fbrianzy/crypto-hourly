@@ -465,13 +465,15 @@ def main():
 
     write_json({"generated_at_utc": now_utc, "interval": "1h", "period": "7d",
                 "series": all_series, "latest": latest_block}, "prices.json")
-    write_json({"generated_at_utc": now_utc, "next_1h_prediction": all_signals,
-                "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
-                "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD."}, "prediction.json")
-    print("\nJSON written")
 
     print("\nGroq insight...")
     insight = get_groq_insight(all_inds, all_signals)
+
+    write_json({"generated_at_utc": now_utc, "next_1h_prediction": all_signals,
+                "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
+                "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
+                "ai_insight": insight if insight else None}, "prediction.json")
+    print("\nJSON written")
 
     print("\nBuilding card...")
     svg_str   = build_svg_card(all_dfs, all_signals, all_inds, insight, now_str)
