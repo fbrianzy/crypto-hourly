@@ -1,402 +1,500 @@
+import io
 import json
 import os
 import time
+import textwrap
 from datetime import datetime, timezone
+
+import cairosvg
 import requests
 import pandas as pd
 
-# ======= Config =======
+# ═══════════════════════════════════════════════
+#  Config
+# ═══════════════════════════════════════════════
 COINS = {
     "BTC-USD": "BTC",
-    "ETH-USD": "ETH"
+    "ETH-USD": "ETH",
 }
-MAX_RETRIES = 3
-RETRY_DELAY = 3
+MAX_RETRIES  = 3
+RETRY_DELAY  = 3
+WEBHOOK_URL  = os.environ.get("DISCORD_WEBHOOK", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
-# Discord
-WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK", "")
-
-# Coin meta for embeds
 COIN_META = {
-    "BTC-USD": {
-        "name": "Bitcoin",
-        "symbol": "BTC",
-        "emoji": "🟡",
-        "color": 0xF7931A,  # Bitcoin orange
-        "icon": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-    },
-    "ETH-USD": {
-        "name": "Ethereum",
-        "symbol": "ETH",
-        "emoji": "🔵",
-        "color": 0x627EEA,  # Ethereum blue
-        "icon": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-    },
+    "BTC-USD": {"name": "Bitcoin",  "symbol": "BTC", "hex": "#F7931A", "icon": "BTC"},
+    "ETH-USD": {"name": "Ethereum", "symbol": "ETH", "hex": "#627EEA", "icon": "ETH"},
 }
-
-SIGNAL_META = {
-    "UP":   {"emoji": "📈", "label": "UP",   "color_hex": 0x10B981},
-    "DOWN": {"emoji": "📉", "label": "DOWN", "color_hex": 0xEF4444},
-    "HOLD": {"emoji": "➡️", "label": "HOLD", "color_hex": 0xF59E0B},
+SIGNAL_STYLE = {
+    "UP":   {"label": "UP",   "bg": "#10B981", "fg": "#ffffff"},
+    "DOWN": {"label": "DOWN", "bg": "#EF4444", "fg": "#ffffff"},
+    "HOLD": {"label": "HOLD", "bg": "#F59E0B", "fg": "#ffffff"},
 }
 
 
-def simple_signal(close_series):
-    """Prediksi sederhana berbasis momentum & SMA(12)"""
-    if len(close_series) < 13:
-        return "HOLD"
-    momentum = close_series[-1] / close_series[-2] - 1
-    sma12 = sum(close_series[-12:]) / 12
-    last_close = close_series[-1]
-    return "UP" if (momentum > 0) or (last_close > sma12) else "DOWN"
-
-
-def fetch_cryptocompare_hourly(coin_symbol):
-    """
-    Fetch hourly data dari CryptoCompare (gratis, no API key)
-    Endpoint: histohour (2000 hours limit, kita ambil 168 = 7 days)
-    """
-    url = "https://min-api.cryptocompare.com/data/v2/histohour"
-    params = {
-        "fsym": coin_symbol,
-        "tsym": "USD",
-        "limit": 168
-    }
+# ═══════════════════════════════════════════════
+#  Data fetching
+# ═══════════════════════════════════════════════
+def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
+    url    = "https://min-api.cryptocompare.com/data/v2/histohour"
+    params = {"fsym": coin_symbol, "tsym": "USD", "limit": 168}
 
     for attempt in range(MAX_RETRIES):
         try:
-            print(f"Fetching {coin_symbol} from CryptoCompare (attempt {attempt + 1}/{MAX_RETRIES})...")
-            response = requests.get(url, params=params, timeout=30)
-            response.raise_for_status()
-            result = response.json()
-
+            print(f"  Fetching {coin_symbol} (attempt {attempt+1}/{MAX_RETRIES})...")
+            r = requests.get(url, params=params, timeout=30)
+            r.raise_for_status()
+            result = r.json()
             if result.get("Response") == "Error":
-                raise ValueError(f"API Error: {result.get('Message', 'Unknown error')}")
+                raise ValueError(result.get("Message", "API error"))
 
-            data_array = result.get("Data", {}).get("Data", [])
-            if not data_array:
-                raise ValueError(f"No data returned for {coin_symbol}")
+            rows = [
+                {"timestamp": d["time"], "close": float(d["close"])}
+                for d in result.get("Data", {}).get("Data", [])
+                if d.get("time") and d.get("close")
+            ]
+            if not rows:
+                raise ValueError("No records returned")
 
-            records = []
-            for item in data_array:
-                timestamp = item.get("time")
-                close_price = item.get("close")
-                if timestamp and close_price:
-                    records.append({"timestamp": timestamp, "close": float(close_price)})
-
-            if not records:
-                raise ValueError(f"No valid records for {coin_symbol}")
-
-            df = pd.DataFrame(records)
+            df = pd.DataFrame(rows)
             df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
             df = df.sort_values("ts_utc").reset_index(drop=True)
-
-            print(f"✓ Successfully fetched {len(df)} hourly data points")
-            print(f"  Range: {df['ts_utc'].iloc[0]} to {df['ts_utc'].iloc[-1]}")
-            print(f"  Last price: ${df['close'].iloc[-1]:,.2f}")
-
+            print(f"  OK  {len(df)} candles | last: ${df['close'].iloc[-1]:,.2f}")
             return df[["ts_utc", "close"]]
 
-        except requests.exceptions.RequestException as e:
-            print(f"  Request error: {str(e)}")
+        except requests.RequestException as e:
+            print(f"  Request error: {e}")
             if attempt < MAX_RETRIES - 1:
-                print(f"  Retrying in {RETRY_DELAY} seconds...")
                 time.sleep(RETRY_DELAY)
             else:
-                raise RuntimeError(f"Failed to fetch {coin_symbol} after {MAX_RETRIES} attempts")
+                raise RuntimeError(f"Failed to fetch {coin_symbol}")
         except Exception as e:
-            print(f"  Error: {str(e)}")
+            print(f"  Error: {e}")
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
             else:
                 raise
 
 
-def to_records(df):
-    return [
-        {"ts_utc": row["ts_utc"].isoformat(), "close": float(row["close"])}
-        for _, row in df.iterrows()
-    ]
+# ═══════════════════════════════════════════════
+#  Technical indicators
+# ═══════════════════════════════════════════════
+def _ema(series, n):
+    k = 2 / (n + 1)
+    e = series[0]
+    for v in series[1:]:
+        e = v * k + e * (1 - k)
+    return e
 
-
-def write_json(payload, relpath):
-    repo_path = os.path.join("data", relpath)
-    os.makedirs(os.path.dirname(repo_path), exist_ok=True)
-    with open(repo_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-
-
-# ─────────────────────────────────────────────
-#  Discord Webhook
-# ─────────────────────────────────────────────
-
-def _price_change(df):
-    """Return change % vs 1 hour ago."""
-    if len(df) < 2:
-        return 0.0
-    return (df["close"].iloc[-1] / df["close"].iloc[-2] - 1) * 100
-
-
-def _price_change_24h(df):
-    """Return change % vs ~24 data points ago."""
-    if len(df) < 25:
+def _rsi(series, n=14):
+    if len(series) < n + 1:
         return None
-    return (df["close"].iloc[-1] / df["close"].iloc[-25] - 1) * 100
+    deltas = [series[i] - series[i-1] for i in range(1, len(series))]
+    gains  = [d for d in deltas if d > 0]
+    losses = [-d for d in deltas if d < 0]
+    avg_g  = sum(gains[-n:])  / n
+    avg_l  = sum(losses[-n:]) / n
+    if avg_l == 0:
+        return 100.0
+    return 100 - 100 / (1 + avg_g / avg_l)
+
+def _bollinger(series, n=20):
+    window = series[-n:]
+    mid    = sum(window) / n
+    std    = (sum((x - mid)**2 for x in window) / n) ** 0.5
+    return mid - 2*std, mid, mid + 2*std
 
 
-def _sma(df, n=12):
-    if len(df) < n:
-        return None
-    return sum(df["close"].tolist()[-n:]) / n
+def predict_signal(close_series):
+    """5-factor voting. Returns (signal, indicators_dict)."""
+    if len(close_series) < 26:
+        return "HOLD", {}
 
+    last  = close_series[-1]
+    prev1 = close_series[-2]
+    prev3 = close_series[-4]
 
-def _high_low_24h(df):
-    recent = df["close"].tail(24)
-    return recent.max(), recent.min()
+    mom_1h = last / prev1 - 1
+    mom_3h = last / prev3 - 1
+    ema12  = _ema(close_series[-12:], 12)
+    ema26  = _ema(close_series[-26:], 26)
+    rsi14  = _rsi(close_series[-30:], 14)
+    bb_lo, bb_mid, bb_hi = _bollinger(close_series, 20)
+    sma12  = sum(close_series[-12:]) / 12
 
-
-def build_coin_embed(ticker, df, signal, generated_at):
-    meta = COIN_META[ticker]
-    sig  = SIGNAL_META.get(signal, SIGNAL_META["HOLD"])
-
-    last_close  = df["close"].iloc[-1]
-    chg_1h      = _price_change(df)
-    chg_24h     = _price_change_24h(df)
-    sma12       = _sma(df, 12)
-    high24, low24 = _high_low_24h(df)
-
-    # Determine embed color: coin color normally, green/red on signal
-    embed_color = sig["color_hex"]
-
-    # Format helpers
-    def fmt_usd(v):
-        return f"${v:,.2f}"
-
-    def fmt_pct(v):
-        sign = "+" if v >= 0 else ""
-        return f"{sign}{v:.2f}%"
-
-    chg_1h_str  = fmt_pct(chg_1h)
-    chg_24h_str = fmt_pct(chg_24h) if chg_24h is not None else "N/A"
-
-    # Trend arrow for 1h change
-    arrow_1h  = "▲" if chg_1h  >= 0 else "▼"
-    arrow_24h = "▲" if (chg_24h or 0) >= 0 else "▼"
-
-    # Build embed
-    embed = {
-        "author": {
-            "name": f"{meta['emoji']} {meta['name']} ({meta['symbol']}/USD)",
-            "icon_url": meta["icon"],
-        },
-        "color": embed_color,
-        "fields": [
-            {
-                "name": "💰 Harga Sekarang",
-                "value": f"```\n{fmt_usd(last_close)}\n```",
-                "inline": True,
-            },
-            {
-                "name": f"{sig['emoji']} Prediksi 1 Jam",
-                "value": f"```\n{sig['label']}\n```",
-                "inline": True,
-            },
-            {
-                "name": "\u200b",
-                "value": "\u200b",
-                "inline": False,
-            },
-            {
-                "name": "📊 Perubahan 1 Jam",
-                "value": f"`{arrow_1h} {chg_1h_str}`",
-                "inline": True,
-            },
-            {
-                "name": "📅 Perubahan 24 Jam",
-                "value": f"`{arrow_24h} {chg_24h_str}`",
-                "inline": True,
-            },
-            {
-                "name": "\u200b",
-                "value": "\u200b",
-                "inline": False,
-            },
-            {
-                "name": "🔺 High 24H",
-                "value": f"`{fmt_usd(high24)}`",
-                "inline": True,
-            },
-            {
-                "name": "🔻 Low 24H",
-                "value": f"`{fmt_usd(low24)}`",
-                "inline": True,
-            },
-            {
-                "name": "📐 SMA(12)",
-                "value": f"`{fmt_usd(sma12)}`" if sma12 else "`N/A`",
-                "inline": True,
-            },
-        ],
-        "footer": {
-            "text": f"Crypto Bot by @fbrianzy  •  CryptoCompare · {generated_at}  •  momentum_or_close_gt_SMA12",
-            "icon_url": "https://github.com/fbrianzy.png",
-        },
-        "url": "https://fbrianzy.github.io/crypto-hourly/",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+    votes = {
+        "mom_1h": mom_1h > 0,
+        "mom_3h": mom_3h > 0,
+        "ema_x":  ema12 > ema26,
+        "rsi":    rsi14 is not None and 40 < rsi14 < 70,
+        "bb_pos": last > bb_mid,
     }
-    return embed
+    score = sum(votes.values())
+
+    if score >= 4:
+        signal = "UP"
+    elif score <= 2:
+        signal = "DOWN"
+    else:
+        signal = "HOLD"
+
+    return signal, {
+        "last": last, "mom_1h": mom_1h*100, "mom_3h": mom_3h*100,
+        "sma12": sma12, "ema12": ema12, "ema26": ema26, "rsi14": rsi14,
+        "bb_lo": bb_lo, "bb_mid": bb_mid, "bb_hi": bb_hi,
+        "votes": score, "vote_map": votes,
+    }
 
 
-def send_discord_webhook(all_data, preds, generated_at):
-    """Send a rich Discord embed for each coin."""
-    if not WEBHOOK_URL:
-        print("⚠️  CRYPTO_WEBHOOK_DOLENCORD not set — skipping webhook.")
-        return
+# ═══════════════════════════════════════════════
+#  Groq AI insight
+# ═══════════════════════════════════════════════
+def get_groq_insight(all_inds, all_signals):
+    if not GROQ_API_KEY:
+        print("  GROQ_API_KEY not set - skipping")
+        return ""
 
-    now_str = datetime.fromisoformat(generated_at).strftime("%d %b %Y, %H:%M UTC")
-
-    embeds = []
-    for ticker, df in all_data.items():
-        signal = preds.get(ticker, "HOLD")
-        embed  = build_coin_embed(ticker, df, signal, now_str)
-        embeds.append(embed)
-
-    # Overall summary line
-    summary_parts = []
-    for ticker, signal in preds.items():
-        meta = COIN_META[ticker]
-        sig  = SIGNAL_META.get(signal, SIGNAL_META["HOLD"])
-        last = all_data[ticker]["close"].iloc[-1]
-        summary_parts.append(
-            f"{meta['emoji']} **{meta['symbol']}** `${last:,.2f}` → {sig['emoji']} **{signal}**"
+    lines = []
+    for ticker, ind in all_inds.items():
+        sym = COIN_META[ticker]["symbol"]
+        sig = all_signals.get(ticker, "HOLD")
+        rsi = ind.get("rsi14")
+        lines.append(
+            f"{sym}: signal={sig}, price=${ind['last']:,.2f}, "
+            f"RSI={f'{rsi:.1f}' if rsi else 'N/A'}, "
+            f"mom1H={ind['mom_1h']:+.2f}%, mom3H={ind['mom_3h']:+.2f}%, "
+            f"EMA12={'>' if ind['ema12']>ind['ema26'] else '<'}EMA26, "
+            f"BB={'above' if ind['last']>ind['bb_mid'] else 'below'} mid, "
+            f"votes={ind['votes']}/5"
         )
 
-    content = (
-        "## 🕐 Crypto Hourly Update\n"
-        + "  ·  ".join(summary_parts)
-        + f"\n-# Auto-update · {now_str}"
-        + f"  ·  [Live Chart](<https://fbrianzy.github.io/crypto-hourly/>)"
-        + f"  ·  [GitHub](<https://github.com/fbrianzy/crypto-hourly/>)"
+    prompt = (
+        "Kamu adalah analis teknikal crypto. Berdasarkan indikator 1 jam ini, "
+        "tulis insight singkat 2-3 kalimat dalam Bahasa Indonesia untuk kedua koin. "
+        "Langsung ke poin, tanpa disclaimer, tanpa markdown.\n\n"
+        + "\n".join(lines)
     )
 
-    payload = {
-        "content": content,
-        "embeds": embeds,
-        "username": "Crypto Bot by @fbrianzy",
-        "avatar_url": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-    }
+    try:
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={"model": "llama3-8b-8192", "messages": [{"role": "user", "content": prompt}],
+                  "max_tokens": 130, "temperature": 0.4},
+            timeout=20,
+        )
+        r.raise_for_status()
+        text = r.json()["choices"][0]["message"]["content"].strip()
+        print(f"  OK  insight: {text[:60]}...")
+        return text
+    except Exception as e:
+        print(f"  Groq error: {e}")
+        return ""
 
+
+# ═══════════════════════════════════════════════
+#  SVG card
+# ═══════════════════════════════════════════════
+def _sparkline(prices, x0, y0, w, h):
+    mn, mx = min(prices), max(prices)
+    rng = mx - mn or 1
+    return " ".join(
+        f"{x0 + int(i/(len(prices)-1)*w)},{y0 + h - int((p-mn)/rng*h)}"
+        for i, p in enumerate(prices)
+    )
+
+def _esc(s):
+    return str(s).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+
+def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
+    W        = 900
+    PAD      = 36
+    COIN_H   = 230
+    HEADER_H = 74
+    N        = len(all_dfs)
+
+    # insight lines
+    ins_lines = textwrap.wrap(insight, 95) if insight else []
+    INS_H  = (len(ins_lines) * 22 + 36) if ins_lines else 0
+    MTH_H  = 30
+    FOOT_H = 52
+    TOTAL_H = HEADER_H + N * COIN_H + INS_H + MTH_H + FOOT_H + 8
+
+    p = []  # svg parts
+
+    p.append(
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{TOTAL_H}" '
+        f'viewBox="0 0 {W} {TOTAL_H}">'
+    )
+    p.append('<defs>')
+    p.append('  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">'
+             '<stop offset="0%" stop-color="#0d1117"/>'
+             '<stop offset="100%" stop-color="#161b22"/></linearGradient>')
+    p.append('</defs>')
+    p.append(f'<rect width="{W}" height="{TOTAL_H}" fill="url(#bg)"/>')
+
+    # header
+    p.append(f'<text x="{PAD}" y="42" font-family="monospace" font-size="20" '
+             f'font-weight="bold" fill="#e6edf3">Crypto Hourly Update</text>')
+    p.append(f'<text x="{PAD}" y="62" font-family="monospace" font-size="11" '
+             f'fill="#484f58">{_esc(generated_at)}  |  crypto-hourly by @fbrianzy</text>')
+    p.append(f'<line x1="{PAD}" y1="{HEADER_H-2}" x2="{W-PAD}" y2="{HEADER_H-2}" '
+             f'stroke="#21262d" stroke-width="1"/>')
+
+    for ci, (ticker, df) in enumerate(all_dfs.items()):
+        meta   = COIN_META[ticker]
+        signal = all_signals.get(ticker, "HOLD")
+        ind    = all_inds.get(ticker, {})
+        ss     = SIGNAL_STYLE[signal]
+        BY     = HEADER_H + ci * COIN_H + 20
+
+        last    = ind.get("last", df["close"].iloc[-1])
+        mom_1h  = ind.get("mom_1h", 0.0)
+        mom_24h = (df["close"].iloc[-1] / df["close"].iloc[-25] - 1)*100 if len(df)>=25 else 0.0
+        rsi14   = ind.get("rsi14")
+        sma12   = ind.get("sma12", 0.0)
+        bb_lo   = ind.get("bb_lo", 0.0)
+        bb_hi   = ind.get("bb_hi", 0.0)
+        bb_mid  = ind.get("bb_mid", 0.0)
+        votes   = ind.get("votes", 0)
+        ema12   = ind.get("ema12", 0.0)
+        ema26   = ind.get("ema26", 0.0)
+
+        c1h  = "#3fb950" if mom_1h  >= 0 else "#f85149"
+        c24h = "#3fb950" if mom_24h >= 0 else "#f85149"
+        a1h  = "+" if mom_1h  >= 0 else ""
+        a24h = "+" if mom_24h >= 0 else ""
+
+        # coin name
+        p.append(f'<text x="{PAD}" y="{BY+16}" font-family="monospace" font-size="13" '
+                 f'font-weight="bold" fill="{meta["hex"]}">{meta["icon"]} / USD  —  {meta["name"]}</text>')
+
+        # price
+        p.append(f'<text x="{PAD}" y="{BY+50}" font-family="monospace" font-size="34" '
+                 f'font-weight="bold" fill="#e6edf3">${last:,.2f}</text>')
+
+        # change 1H 24H
+        p.append(f'<text x="{PAD}" y="{BY+72}" font-family="monospace" font-size="13" '
+                 f'fill="{c1h}">{a1h}{mom_1h:.2f}%  1H</text>')
+        p.append(f'<text x="{PAD+130}" y="{BY+72}" font-family="monospace" font-size="13" '
+                 f'fill="{c24h}">{a24h}{mom_24h:.2f}%  24H</text>')
+
+        # signal badge
+        SBW, SBH = 120, 40
+        SBX = W - PAD - SBW
+        SBY = BY + 4
+        p.append(f'<rect x="{SBX}" y="{SBY}" width="{SBW}" height="{SBH}" '
+                 f'rx="6" fill="{ss["bg"]}"/>')
+        p.append(f'<text x="{SBX+SBW//2}" y="{SBY+SBH//2+1}" font-family="monospace" '
+                 f'font-size="17" font-weight="bold" fill="{ss["fg"]}" '
+                 f'text-anchor="middle" dominant-baseline="central">{ss["label"]}</text>')
+
+        # vote pips
+        for vi in range(5):
+            fc = "#3fb950" if vi < votes else "#21262d"
+            p.append(f'<circle cx="{SBX + vi*24 + 12}" cy="{SBY+SBH+18}" r="9" fill="{fc}"/>')
+        p.append(f'<text x="{SBX+5*24+4}" y="{SBY+SBH+23}" font-family="monospace" '
+                 f'font-size="11" fill="#484f58">{votes}/5</text>')
+
+        # stat cells
+        stats = [
+            ("SMA12",  f"${sma12:,.0f}"),
+            ("RSI14",  f"{rsi14:.1f}" if rsi14 is not None else "N/A"),
+            ("EMA12",  f"{'>' if ema12>ema26 else '<'} EMA26"),
+            ("BB",     f"${bb_lo:,.0f} — ${bb_hi:,.0f}"),
+        ]
+        for si, (lbl, val) in enumerate(stats):
+            sx = PAD + si * 210
+            p.append(f'<text x="{sx}" y="{BY+100}" font-family="monospace" '
+                     f'font-size="11" fill="#484f58">{lbl}</text>')
+            p.append(f'<text x="{sx}" y="{BY+118}" font-family="monospace" '
+                     f'font-size="13" font-weight="bold" fill="#8b949e">{_esc(val)}</text>')
+
+        # sparkline
+        spark = df["close"].tail(48).tolist()
+        SPX, SPY, SPW, SPH = PAD, BY+132, W-PAD*2, 72
+        pts = _sparkline(spark, SPX, SPY, SPW, SPH)
+        lx  = pts.split()[-1].split(",")[0]
+        p.append(f'<defs><linearGradient id="sg{ci}" x1="0" y1="0" x2="0" y2="1">'
+                 f'<stop offset="0%" stop-color="{meta["hex"]}" stop-opacity="0.2"/>'
+                 f'<stop offset="100%" stop-color="{meta["hex"]}" stop-opacity="0.01"/>'
+                 f'</linearGradient></defs>')
+        p.append(f'<polygon points="{SPX},{SPY+SPH} {pts} {lx},{SPY+SPH}" fill="url(#sg{ci})"/>')
+        p.append(f'<polyline points="{pts}" fill="none" stroke="{meta["hex"]}" '
+                 f'stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>')
+
+        # current price dot on sparkline
+        last_pt = pts.split()[-1]
+        dot_x, dot_y = last_pt.split(",")
+        p.append(f'<circle cx="{dot_x}" cy="{dot_y}" r="4" fill="{meta["hex"]}"/>')
+        p.append(f'<circle cx="{dot_x}" cy="{dot_y}" r="7" fill="{meta["hex"]}" opacity="0.25"/>')
+
+        # divider
+        if ci < N - 1:
+            dy = HEADER_H + (ci+1)*COIN_H
+            p.append(f'<line x1="{PAD}" y1="{dy}" x2="{W-PAD}" y2="{dy}" '
+                     f'stroke="#21262d" stroke-width="1"/>')
+
+    # AI insight
+    INS_Y = HEADER_H + N * COIN_H + 10
+    if ins_lines:
+        p.append(f'<line x1="{PAD}" y1="{INS_Y}" x2="{W-PAD}" y2="{INS_Y}" '
+                 f'stroke="#21262d" stroke-width="1"/>')
+        p.append(f'<text x="{PAD}" y="{INS_Y+18}" font-family="monospace" font-size="11" '
+                 f'font-weight="bold" fill="#58a6ff">AI Insight  (Groq · llama3-8b)</text>')
+        for li, line in enumerate(ins_lines):
+            p.append(f'<text x="{PAD}" y="{INS_Y+36+li*22}" font-family="monospace" '
+                     f'font-size="13" fill="#8b949e">{_esc(line)}</text>')
+
+    # method
+    MTH_Y = HEADER_H + N*COIN_H + INS_H + 8
+    p.append(f'<text x="{PAD}" y="{MTH_Y+14}" font-family="monospace" font-size="10" '
+             f'fill="#30363d">Method: 5-factor vote [mom1H · mom3H · EMA12&gt;EMA26 · RSI(40-70) · BB_mid]  '
+             f'UP&gt;=4  HOLD=3  DOWN&lt;=2</text>')
+
+    # footer
+    FTY = TOTAL_H - FOOT_H + 10
+    p.append(f'<line x1="{PAD}" y1="{FTY}" x2="{W-PAD}" y2="{FTY}" '
+             f'stroke="#21262d" stroke-width="1"/>')
+    p.append(f'<text x="{PAD}" y="{FTY+18}" font-family="monospace" font-size="11" '
+             f'fill="#30363d">fbrianzy.github.io/crypto-hourly  |  github.com/fbrianzy/crypto-hourly'
+             f'  |  Source: CryptoCompare</text>')
+    p.append(f'<text x="{PAD}" y="{FTY+34}" font-family="monospace" font-size="10" '
+             f'fill="#21262d">Crypto Bot by @fbrianzy  |  Auto-update via GitHub Actions</text>')
+
+    p.append("</svg>")
+    return "\n".join(p)
+
+
+def svg_to_png(svg_str):
+    return cairosvg.svg2png(bytestring=svg_str.encode("utf-8"), scale=1.5)
+
+
+# ═══════════════════════════════════════════════
+#  Discord
+# ═══════════════════════════════════════════════
+def build_caption(all_signals, all_inds, now_str):
+    parts = []
+    for ticker, signal in all_signals.items():
+        meta  = COIN_META[ticker]
+        price = all_inds.get(ticker, {}).get("last", 0)
+        parts.append(f"**{meta['symbol']}** `${price:,.2f}` → **{signal}**")
+    return (
+        "## Crypto Hourly Update\n"
+        + "  ·  ".join(parts)
+        + f"\n-# {now_str}"
+        + "  ·  [Live Chart](<https://fbrianzy.github.io/crypto-hourly/>)"
+        + "  ·  [GitHub](<https://github.com/fbrianzy/crypto-hourly/>)"
+    )
+
+def send_discord_image(png_bytes, caption):
+    if not WEBHOOK_URL:
+        print("  DISCORD_WEBHOOK not set - skipping")
+        return
     for attempt in range(MAX_RETRIES):
         try:
             resp = requests.post(
                 WEBHOOK_URL,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=15,
+                data={"payload_json": json.dumps({
+                    "username":   "Crypto Bot by @fbrianzy",
+                    "avatar_url": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+                    "content":    caption,
+                })},
+                files={"file": ("crypto_update.png", io.BytesIO(png_bytes), "image/png")},
+                timeout=30,
             )
             if resp.status_code in (200, 204):
-                print("✓ Discord webhook sent successfully.")
+                print("  OK  Discord image sent")
                 return
-            else:
-                print(f"  Webhook returned {resp.status_code}: {resp.text}")
-                if attempt < MAX_RETRIES - 1:
-                    time.sleep(RETRY_DELAY)
-                else:
-                    print("⚠️  Webhook failed after all retries — continuing anyway.")
-        except requests.exceptions.RequestException as e:
-            print(f"  Webhook request error: {e}")
+            print(f"  Webhook {resp.status_code}: {resp.text[:200]}")
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
-            else:
-                print("⚠️  Webhook failed after all retries — continuing anyway.")
+        except requests.RequestException as e:
+            print(f"  Webhook error: {e}")
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY)
 
 
-# ─────────────────────────────────────────────
+# ═══════════════════════════════════════════════
+#  JSON helpers
+# ═══════════════════════════════════════════════
+def to_records(df):
+    return [{"ts_utc": r["ts_utc"].isoformat(), "close": float(r["close"])}
+            for _, r in df.iterrows()]
+
+def write_json(payload, relpath):
+    path = os.path.join("data", relpath)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+# ═══════════════════════════════════════════════
 #  Main
-# ─────────────────────────────────────────────
-
+# ═══════════════════════════════════════════════
 def main():
-    all_series   = {}
-    all_dfs      = {}          # keep raw DataFrames for webhook
-    latest_block = {}
-    preds        = {}
+    print(f"\n{'='*60}")
+    print(f"Crypto Hourly  |  {datetime.now(timezone.utc).isoformat()}")
+    print(f"{'='*60}\n")
 
-    print(f"\n{'='*70}")
-    print(f"Crypto Hourly Data Fetcher")
-    print(f"Started at: {datetime.now(timezone.utc).isoformat()}")
-    print(f"Source: CryptoCompare API (min-api.cryptocompare.com)")
-    print(f"{'='*70}\n")
+    all_series   = {}
+    all_dfs      = {}
+    all_signals  = {}
+    all_inds     = {}
+    latest_block = {}
 
     for idx, (ticker, coin_symbol) in enumerate(COINS.items()):
-        try:
-            if idx > 0:
-                print(f"\nWaiting 2 seconds before next request...")
-                time.sleep(2)
+        if idx:
+            time.sleep(2)
+        print(f"[{idx+1}/{len(COINS)}] {ticker}")
+        df = fetch_cryptocompare_hourly(coin_symbol)
 
-            print(f"\n[{idx+1}/{len(COINS)}] {ticker} ({coin_symbol}):")
-            print("-" * 50)
-
-            df = fetch_cryptocompare_hourly(coin_symbol)
-
-            all_dfs[ticker]      = df
-            all_series[ticker]   = to_records(df)
-            latest_block[ticker] = {
-                "last_ts_utc": df["ts_utc"].iloc[-1].isoformat(),
-                "last_close":  float(df["close"].iloc[-1])
-            }
-
-            close_list   = df["close"].tolist()
-            preds[ticker] = simple_signal(close_list)
-            print(f"  Prediction: {preds[ticker]}")
-
-        except Exception as e:
-            print(f"\n✗ FAILED to process {ticker}: {str(e)}")
-            raise
+        all_dfs[ticker]      = df
+        all_series[ticker]   = to_records(df)
+        latest_block[ticker] = {
+            "last_ts_utc": df["ts_utc"].iloc[-1].isoformat(),
+            "last_close":  float(df["close"].iloc[-1]),
+        }
+        signal, ind = predict_signal(df["close"].tolist())
+        all_signals[ticker] = signal
+        all_inds[ticker]    = ind
+        print(f"  Signal: {signal}  votes={ind.get('votes',0)}/5")
 
     now_utc = datetime.now(timezone.utc).isoformat()
+    now_str = datetime.fromisoformat(now_utc).strftime("%d %b %Y, %H:%M UTC")
 
-    # Write prices.json
-    prices_payload = {
-        "generated_at_utc": now_utc,
-        "interval": "1h",
-        "period":   "7d",
-        "series":   all_series,
-        "latest":   latest_block,
-    }
-    write_json(prices_payload, "prices.json")
-    print(f"\n✓ Wrote: data/prices.json")
+    write_json({"generated_at_utc": now_utc, "interval": "1h", "period": "7d",
+                "series": all_series, "latest": latest_block}, "prices.json")
+    write_json({"generated_at_utc": now_utc, "next_1h_prediction": all_signals,
+                "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
+                "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD."}, "prediction.json")
+    print("\nJSON written")
 
-    # Write prediction.json
-    pred_payload = {
-        "generated_at_utc":    now_utc,
-        "next_1h_prediction":  preds,
-        "method":              "momentum_or_close_gt_SMA12",
-        "note":                "Simple rule-based signal using last-hour momentum and SMA(12)."
-    }
-    write_json(pred_payload, "prediction.json")
-    print(f"✓ Wrote: data/prediction.json")
+    print("\nGroq insight...")
+    insight = get_groq_insight(all_inds, all_signals)
 
-    # Send Discord webhook
-    print(f"\nSending Discord webhook...")
-    send_discord_webhook(all_dfs, preds, now_utc)
+    print("\nBuilding card...")
+    svg_str   = build_svg_card(all_dfs, all_signals, all_inds, insight, now_str)
+    png_bytes = svg_to_png(svg_str)
+    print(f"  PNG: {len(png_bytes)/1024:.1f} KB")
 
-    print(f"\n{'='*70}")
-    print(f"✅ SUCCESS!")
-    print(f"Generated at: {now_utc}")
-    print(f"\nPredictions:")
-    for ticker in COINS.keys():
-        price = latest_block[ticker]['last_close']
-        pred  = preds[ticker]
-        print(f"  {ticker}: {pred:5s} (${price:>10,.2f})")
-    print(f"{'='*70}\n")
+    print("\nSending to Discord...")
+    caption = build_caption(all_signals, all_inds, now_str)
+    send_discord_image(png_bytes, caption)
+
+    print(f"\n{'='*60}")
+    print("SUCCESS")
+    for ticker in COINS:
+        p = latest_block[ticker]["last_close"]
+        s = all_signals[ticker]
+        v = all_inds[ticker].get("votes", 0)
+        print(f"  {ticker}: {s}  votes={v}/5  ${p:,.2f}")
+    print(f"{'='*60}\n")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\n{'='*70}")
-        print(f"❌ SCRIPT FAILED")
-        print(f"Error: {str(e)}")
-        print(f"{'='*70}\n")
-        exit(1)
+        print(f"\nFAILED: {e}")
+        raise SystemExit(1)
