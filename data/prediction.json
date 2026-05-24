@@ -1,51 +1,51 @@
 {
-  "generated_at_utc": "2026-05-24T12:02:15.708471+00:00",
+  "generated_at_utc": "2026-05-24T13:54:51.369422+00:00",
   "next_1h_prediction": {
     "BTC-USD": "HOLD",
-    "ETH-USD": "UP"
+    "ETH-USD": "DOWN"
   },
   "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
   "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-  "ai_insight": "Untuk BTC, trennya relatif stabil dengan signal HOLD, tetapi perlu perhatian karena RSI sudah mencapai 70,4, menunjukkan potensi penurunan. \n\nUntuk ETH, trennya positif dengan signal UP, didukung oleh indikator-indikator seperti EMA12>EMA26 dan BB di atas mid.",
+  "ai_insight": "BTC sedang menunjukkan tren stabil dengan RSI yang tidak terlalu tinggi, namun masih dalam zona overbought. Indikator momentum menunjukkan penurunan kecil dalam 1 jam terakhir, tetapi EMA12 masih di atas EMA26, yang menunjukkan tren bullish.\n\nETH sedang mengalami penurunan dengan RSI yang tidak terlalu tinggi, namun masih dalam zona overbought. Indikator momentum menunjukkan penurunan kecil dalam 1 jam terakhir, dan BB berada di bawah midline, yang menunjukkan tren bear",
   "indicators": {
     "BTC-USD": {
-      "last": 77210.48,
-      "mom_1h": -0.03529362718278639,
-      "mom_3h": 0.3364974891990391,
-      "sma12": 76882.10583333333,
-      "ema12": 76956.61182632198,
-      "ema26": 76402.66028009047,
-      "rsi14": 70.41323318505515,
-      "bb_lo": 75758.3236672638,
-      "bb_mid": 76678.362,
-      "bb_hi": 77598.40033273619,
+      "last": 76775.39,
+      "mom_1h": -0.34816635716672373,
+      "mom_3h": -0.4409622768151267,
+      "sma12": 76865.00666666667,
+      "ema12": 76897.91193081441,
+      "ema26": 76413.32612264753,
+      "rsi14": 63.67853083871339,
+      "bb_lo": 76038.75508663416,
+      "bb_mid": 76737.70000000001,
+      "bb_hi": 77436.64491336586,
       "votes": 3,
       "vote_map": {
         "mom_1h": false,
-        "mom_3h": true,
+        "mom_3h": false,
         "ema_x": true,
-        "rsi": false,
+        "rsi": true,
         "bb_pos": true
       }
     },
     "ETH-USD": {
-      "last": 2122.93,
-      "mom_1h": -0.04331756009134935,
-      "mom_3h": 0.08627598887369636,
-      "sma12": 2120.244166666666,
-      "ema12": 2120.846435515852,
-      "ema26": 2099.6272102230887,
-      "rsi14": 69.38946015424168,
-      "bb_lo": 2074.355675750119,
-      "bb_mid": 2112.82,
-      "bb_hi": 2151.284324249881,
-      "votes": 4,
+      "last": 2110.02,
+      "mom_1h": -0.36595097673496335,
+      "mom_3h": -0.470285237194501,
+      "sma12": 2118.9758333333334,
+      "ema12": 2118.5171965295995,
+      "ema26": 2099.983648261764,
+      "rsi14": 64.07334876268476,
+      "bb_lo": 2084.5444890607814,
+      "bb_mid": 2114.9739999999997,
+      "bb_hi": 2145.403510939218,
+      "votes": 2,
       "vote_map": {
         "mom_1h": false,
-        "mom_3h": true,
+        "mom_3h": false,
         "ema_x": true,
         "rsi": true,
-        "bb_pos": true
+        "bb_pos": false
       }
     }
   }
