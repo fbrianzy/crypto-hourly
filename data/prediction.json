@@ -1,24 +1,24 @@
 {
-  "generated_at_utc": "2026-05-31T23:32:47.425945+00:00",
+  "generated_at_utc": "2026-06-01T01:56:10.174350+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
   "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
   "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-  "ai_insight": "BTC sedang mengalami penurunan, dengan RSI yang masih relatif rendah dan EMA12 berada di bawah EMA26, menunjukkan tren jangka pendek yang negatif. Indikator momentum juga menunjukkan penurunan, dengan mom1H dan mom3H berada di bawah nol.\n\nETH juga mengalami penurunan, dengan RSI yang rendah dan EMA12 berada di bawah EMA26, menunjukkan tren jangka pendek yang negatif. Indikator momentum juga menunjukkan penurunan, dengan mom1H",
+  "ai_insight": "BTC sedang mengalami penurunan, dengan RSI di bawah 50 dan EMA12 lebih rendah dari EMA26, menunjukkan tren downtrend. Indikator momentum juga menunjukkan penurunan, dengan mom1H dan mom3H negatif.\n\nETH juga sedang mengalami penurunan, dengan RSI di bawah 50 dan EMA12 lebih rendah dari EMA26, menunjukkan tren downtrend. Indikator momentum juga menunjukkan penurunan, dengan mom1H dan mom3H negatif.",
   "indicators": {
     "BTC-USD": {
-      "last": 73618.52,
-      "mom_1h": -0.3335818951675451,
-      "mom_3h": -0.06020672287135875,
-      "sma12": 73646.62833333334,
-      "ema12": 73685.18116811509,
-      "ema26": 73733.48978995247,
-      "rsi14": 43.326874359727846,
-      "bb_lo": 73396.89713126954,
-      "bb_mid": 73742.358,
-      "bb_hi": 74087.81886873045,
+      "last": 73277.43,
+      "mom_1h": -0.7173988563674016,
+      "mom_3h": -0.7953572548376253,
+      "sma12": 73600.47166666668,
+      "ema12": 73595.57537909505,
+      "ema26": 73724.06349373292,
+      "rsi14": 40.35198891216182,
+      "bb_lo": 73346.34432466012,
+      "bb_mid": 73692.7545,
+      "bb_hi": 74039.16467533987,
       "votes": 1,
       "vote_map": {
         "mom_1h": false,
@@ -29,22 +29,22 @@
       }
     },
     "ETH-USD": {
-      "last": 2003.51,
-      "mom_1h": -0.32784438585145015,
-      "mom_3h": -0.06384708622848567,
-      "sma12": 2006.568333333333,
-      "ema12": 2007.4575279846076,
-      "ema26": 2012.6724897188951,
-      "rsi14": 42.20057185216568,
-      "bb_lo": 1992.859028773456,
-      "bb_mid": 2013.4205000000002,
-      "bb_hi": 2033.9819712265444,
-      "votes": 1,
+      "last": 1994.31,
+      "mom_1h": -0.9304335731033619,
+      "mom_3h": -0.7855330580568087,
+      "sma12": 2004.1158333333335,
+      "ema12": 2004.3827134444518,
+      "ema26": 2011.8703116124007,
+      "rsi14": 39.7993592986006,
+      "bb_lo": 1991.8022076091693,
+      "bb_mid": 2010.9035,
+      "bb_hi": 2030.0047923908305,
+      "votes": 0,
       "vote_map": {
         "mom_1h": false,
         "mom_3h": false,
         "ema_x": false,
-        "rsi": true,
+        "rsi": false,
         "bb_pos": false
       }
     }
