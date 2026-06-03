@@ -1,24 +1,24 @@
 {
-  "generated_at_utc": "2026-06-03T19:00:04.307444+00:00",
+  "generated_at_utc": "2026-06-03T21:55:37.006078+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
-    "ETH-USD": "DOWN"
+    "ETH-USD": "HOLD"
   },
   "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
   "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-  "ai_insight": "BTC sedang mengalami tekanan penurunan dengan RSI di bawah 50, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan, dengan mom3H yang lebih kuat.\n\nETH juga mengalami tekanan penurunan dengan RSI yang sangat rendah, menunjukkan potensi penurunan lebih lanjut. Indikator momentum juga menunjukkan penurunan, dengan mom3H yang lebih kuat.",
+  "ai_insight": "BTC menunjukkan sinyal penurunan dengan harga yang berada di sekitar $65.585,37. Indikator RSI berada di bawah 50, menunjukkan bahwa aset ini sedang dalam zona penurunan. Sementara itu, ETH menunjukkan sinyal hold dengan harga yang stabil di sekitar $1.839,51. Indikator RSI berada di sekitar 50, menunjukkan bahwa aset ini sedang dalam zona stabil.",
   "indicators": {
     "BTC-USD": {
-      "last": 65957.07,
-      "mom_1h": 0.12321653290507939,
-      "mom_3h": -0.045675518028420736,
-      "sma12": 66636.29666666665,
-      "ema12": 66483.21321397227,
-      "ema26": 66710.3972023859,
-      "rsi14": 42.47559651066831,
-      "bb_lo": 65709.38377505065,
-      "bb_mid": 66641.227,
-      "bb_hi": 67573.07022494935,
+      "last": 65585.37,
+      "mom_1h": 1.0317239518008003,
+      "mom_3h": -0.5602466413402785,
+      "sma12": 66203.08750000001,
+      "ema12": 66034.18227140016,
+      "ema26": 66437.22475120022,
+      "rsi14": 41.17826849343595,
+      "bb_lo": 65078.87853997728,
+      "bb_mid": 66416.8135,
+      "bb_hi": 67754.74846002272,
       "votes": 2,
       "vote_map": {
         "mom_1h": true,
@@ -29,22 +29,22 @@
       }
     },
     "ETH-USD": {
-      "last": 1830.1,
-      "mom_1h": 0.004918005912535328,
-      "mom_3h": -0.010380868605519566,
-      "sma12": 1854.6475,
-      "ema12": 1848.2710095915954,
-      "ema26": 1862.6159352760442,
-      "rsi14": 36.9702354509107,
-      "bb_lo": 1817.348656770948,
-      "bb_mid": 1856.3035,
-      "bb_hi": 1895.258343229052,
-      "votes": 1,
+      "last": 1839.51,
+      "mom_1h": 3.390306825015865,
+      "mom_3h": 0.51912284632325,
+      "sma12": 1841.1575,
+      "ema12": 1835.4543991633486,
+      "ema26": 1852.5080352598745,
+      "rsi14": 47.53152530661601,
+      "bb_lo": 1794.4671807813525,
+      "bb_mid": 1849.4375,
+      "bb_hi": 1904.4078192186475,
+      "votes": 3,
       "vote_map": {
         "mom_1h": true,
-        "mom_3h": false,
+        "mom_3h": true,
         "ema_x": false,
-        "rsi": false,
+        "rsi": true,
         "bb_pos": false
       }
     }
