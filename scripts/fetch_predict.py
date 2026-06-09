@@ -38,64 +38,78 @@ SIGNAL_STYLE = {
 # ═══════════════════════════════════════════════
 def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
     """
-    Fetch 168 candles (7 hari x 24 jam) dari CoinDesk Data API
-    Endpoint: GET https://data-api.coindesk.com/spot/v1/historical/hours
-    Docs: https://developers.coindesk.com/documentation/data-api/spot_v1_historical_hours
+    Fetch 168 candles dari CoinDesk Data API (spot OHLCV hourly).
+    Mencoba beberapa market sebagai fallback.
     """
-    url    = "https://data-api.coindesk.com/spot/v1/historical/hours"
-    params = {
-        "market":     "ccix",          # CCIX = aggregated multi-exchange (pengganti CCCAGG)
-        "instrument": f"{coin_symbol}-USD",
-        "limit":      168,
-        "groups":     "OHLC",
-    }
+    # Urutan prioritas market — ccix = aggregated, lainnya exchange spesifik
+    MARKETS_TO_TRY = ["coinbase", "kraken", "bitstamp", "gemini"]
+
     headers = {
         "authorization": f"Apikey {COINDESK_API_KEY}",
     }
 
-    for attempt in range(MAX_RETRIES):
-        try:
-            print(f"  Fetching {coin_symbol} from CoinDesk Data API (attempt {attempt+1}/{MAX_RETRIES})...")
-            r = requests.get(url, params=params, headers=headers, timeout=30)
-            r.raise_for_status()
-            result = r.json()
+    last_error = None
+    for market in MARKETS_TO_TRY:
+        url    = "https://data-api.coindesk.com/spot/v1/historical/hours"
+        params = {
+            "market":     market,
+            "instrument": f"{coin_symbol}-USD",
+            "limit":      168,
+            "groups":     "OHLC",
+        }
 
-            err = result.get("Err", {})
-            if err:
-                raise ValueError(f"API error: {err.get('message', err)}")
+        for attempt in range(MAX_RETRIES):
+            try:
+                print(f"  Fetching {coin_symbol} [{market}] (attempt {attempt+1}/{MAX_RETRIES})...")
+                r = requests.get(url, params=params, headers=headers, timeout=30)
 
-            data_list = result.get("Data", [])
-            if not data_list:
-                raise ValueError("No records returned")
+                if r.status_code == 400:
+                    body = r.json()
+                    err_msg = body.get("Err", {}).get("message", r.text[:200])
+                    print(f"  400 on [{market}]: {err_msg}")
+                    last_error = err_msg
+                    break  # skip ke market berikutnya, jangan retry
 
-            rows = []
-            for d in data_list:
-                ts    = d.get("TIMESTAMP")
-                close = d.get("CLOSE")
-                if ts and close:
-                    rows.append({"timestamp": ts, "close": float(close)})
+                r.raise_for_status()
+                result = r.json()
 
-            if not rows:
-                raise ValueError("No valid rows after parsing")
+                err = result.get("Err", {})
+                if err and err.get("message"):
+                    raise ValueError(f"API error: {err.get('message')}")
 
-            df = pd.DataFrame(rows)
-            df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
-            df = df.sort_values("ts_utc").reset_index(drop=True)
-            print(f"  OK  {len(df)} candles | last: ${df['close'].iloc[-1]:,.2f}")
-            return df[["ts_utc", "close"]]
+                data_list = result.get("Data", [])
+                if not data_list:
+                    raise ValueError("No records returned")
 
-        except requests.RequestException as e:
-            print(f"  Request error: {e}")
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_DELAY)
-            else:
-                raise RuntimeError(f"Failed to fetch {coin_symbol}")
-        except Exception as e:
-            print(f"  Error: {e}")
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(RETRY_DELAY)
-            else:
-                raise
+                rows = []
+                for d in data_list:
+                    ts    = d.get("TIMESTAMP")
+                    close = d.get("CLOSE")
+                    if ts and close:
+                        rows.append({"timestamp": ts, "close": float(close)})
+
+                if not rows:
+                    raise ValueError("No valid rows after parsing")
+
+                df = pd.DataFrame(rows)
+                df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+                df = df.sort_values("ts_utc").reset_index(drop=True)
+                print(f"  OK  {len(df)} candles [{market}] | last: ${df['close'].iloc[-1]:,.2f}")
+                return df[["ts_utc", "close"]]
+
+            except requests.RequestException as e:
+                print(f"  Request error [{market}]: {e}")
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_DELAY)
+                else:
+                    last_error = str(e)
+                    break
+            except ValueError as e:
+                print(f"  Parse error [{market}]: {e}")
+                last_error = str(e)
+                break
+
+    raise RuntimeError(f"Failed to fetch {coin_symbol}. Last error: {last_error}")
 
 
 # ═══════════════════════════════════════════════
