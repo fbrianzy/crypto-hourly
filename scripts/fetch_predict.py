@@ -20,6 +20,7 @@ MAX_RETRIES  = 3
 RETRY_DELAY  = 3
 WEBHOOK_URL  = os.environ.get("DISCORD_WEBHOOK", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+COINDESK_API_KEY = os.environ.get("COINDESK_API_KEY", "")
 
 COIN_META = {
     "BTC-USD": {"name": "Bitcoin",  "symbol": "BTC", "hex": "#F7931A", "icon": "BTC"},
@@ -36,25 +37,46 @@ SIGNAL_STYLE = {
 #  Data fetching
 # ═══════════════════════════════════════════════
 def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
-    url    = "https://min-api.cryptocompare.com/data/v2/histohour"
-    params = {"fsym": coin_symbol, "tsym": "USD", "limit": 168}
+    """
+    Fetch 168 candles (7 hari x 24 jam) dari CoinDesk Data API
+    Endpoint: GET https://data-api.coindesk.com/spot/v1/historical/hours
+    Docs: https://developers.coindesk.com/documentation/data-api/spot_v1_historical_hours
+    """
+    url    = "https://data-api.coindesk.com/spot/v1/historical/hours"
+    params = {
+        "market":     "ccix",          # CCIX = aggregated multi-exchange (pengganti CCCAGG)
+        "instrument": f"{coin_symbol}-USD",
+        "limit":      168,
+        "groups":     "OHLC",
+    }
+    headers = {
+        "authorization": f"Apikey {COINDESK_API_KEY}",
+    }
 
     for attempt in range(MAX_RETRIES):
         try:
-            print(f"  Fetching {coin_symbol} (attempt {attempt+1}/{MAX_RETRIES})...")
-            r = requests.get(url, params=params, timeout=30)
+            print(f"  Fetching {coin_symbol} from CoinDesk Data API (attempt {attempt+1}/{MAX_RETRIES})...")
+            r = requests.get(url, params=params, headers=headers, timeout=30)
             r.raise_for_status()
             result = r.json()
-            if result.get("Response") == "Error":
-                raise ValueError(result.get("Message", "API error"))
 
-            rows = [
-                {"timestamp": d["time"], "close": float(d["close"])}
-                for d in result.get("Data", {}).get("Data", [])
-                if d.get("time") and d.get("close")
-            ]
-            if not rows:
+            err = result.get("Err", {})
+            if err:
+                raise ValueError(f"API error: {err.get('message', err)}")
+
+            data_list = result.get("Data", [])
+            if not data_list:
                 raise ValueError("No records returned")
+
+            rows = []
+            for d in data_list:
+                ts    = d.get("TIMESTAMP")
+                close = d.get("CLOSE")
+                if ts and close:
+                    rows.append({"timestamp": ts, "close": float(close)})
+
+            if not rows:
+                raise ValueError("No valid rows after parsing")
 
             df = pd.DataFrame(rows)
             df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
