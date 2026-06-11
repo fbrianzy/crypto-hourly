@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-11T21:51:01.501224+00:00",
+  "updated_at": "2026-06-11T23:26:33.989060+00:00",
   "entries": [
     {
       "ts": "2026-06-11T06:40:03.541275+00:00",
@@ -86,7 +86,7 @@
       "ticker": "BTC-USD",
       "signal": "UP",
       "price_prev": 63488.37,
-      "price_next": null,
+      "price_next": 63329.25,
       "votes": 5
     },
     {
@@ -94,8 +94,24 @@
       "ticker": "ETH-USD",
       "signal": "UP",
       "price_prev": 1678.26,
-      "price_next": null,
+      "price_next": 1670.24,
       "votes": 4
+    },
+    {
+      "ts": "2026-06-11T23:26:33.989060+00:00",
+      "ticker": "BTC-USD",
+      "signal": "HOLD",
+      "price_prev": 63329.25,
+      "price_next": null,
+      "votes": 3
+    },
+    {
+      "ts": "2026-06-11T23:26:33.989060+00:00",
+      "ticker": "ETH-USD",
+      "signal": "HOLD",
+      "price_prev": 1670.24,
+      "price_next": null,
+      "votes": 3
     }
   ]
 }
