@@ -41,7 +41,6 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
     Fetch 168 candles dari CoinDesk Data API (spot OHLCV hourly).
     Mencoba beberapa market sebagai fallback.
     """
-    # Urutan prioritas market — ccix = aggregated, lainnya exchange spesifik
     MARKETS_TO_TRY = ["coinbase", "kraken", "bitstamp", "gemini"]
 
     headers = {
@@ -68,7 +67,7 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
                     err_msg = body.get("Err", {}).get("message", r.text[:200])
                     print(f"  400 on [{market}]: {err_msg}")
                     last_error = err_msg
-                    break  # skip ke market berikutnya, jangan retry
+                    break
 
                 r.raise_for_status()
                 result = r.json()
@@ -249,14 +248,13 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
     HEADER_H = 74
     N        = len(all_dfs)
 
-    # insight lines
     ins_lines = textwrap.wrap(insight, 95) if insight else []
     INS_H  = (len(ins_lines) * 22 + 36) if ins_lines else 0
     MTH_H  = 30
     FOOT_H = 52
     TOTAL_H = HEADER_H + N * COIN_H + INS_H + MTH_H + FOOT_H + 8
 
-    p = []  # svg parts
+    p = []
 
     p.append(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{TOTAL_H}" '
@@ -269,7 +267,6 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
     p.append('</defs>')
     p.append(f'<rect width="{W}" height="{TOTAL_H}" fill="url(#bg)"/>')
 
-    # header
     p.append(f'<text x="{PAD}" y="42" font-family="monospace" font-size="20" '
              f'font-weight="bold" fill="#e6edf3">Crypto Hourly Update</text>')
     p.append(f'<text x="{PAD}" y="62" font-family="monospace" font-size="11" '
@@ -301,21 +298,15 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
         a1h  = "+" if mom_1h  >= 0 else ""
         a24h = "+" if mom_24h >= 0 else ""
 
-        # coin name
         p.append(f'<text x="{PAD}" y="{BY+16}" font-family="monospace" font-size="13" '
                  f'font-weight="bold" fill="{meta["hex"]}">{meta["icon"]} / USD  —  {meta["name"]}</text>')
-
-        # price
         p.append(f'<text x="{PAD}" y="{BY+50}" font-family="monospace" font-size="34" '
                  f'font-weight="bold" fill="#e6edf3">${last:,.2f}</text>')
-
-        # change 1H 24H
         p.append(f'<text x="{PAD}" y="{BY+72}" font-family="monospace" font-size="13" '
                  f'fill="{c1h}">{a1h}{mom_1h:.2f}%  1H</text>')
         p.append(f'<text x="{PAD+130}" y="{BY+72}" font-family="monospace" font-size="13" '
                  f'fill="{c24h}">{a24h}{mom_24h:.2f}%  24H</text>')
 
-        # signal badge
         SBW, SBH = 120, 40
         SBX = W - PAD - SBW
         SBY = BY + 4
@@ -325,14 +316,12 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
                  f'font-size="17" font-weight="bold" fill="{ss["fg"]}" '
                  f'text-anchor="middle" dominant-baseline="central">{ss["label"]}</text>')
 
-        # vote pips
         for vi in range(5):
             fc = "#3fb950" if vi < votes else "#21262d"
             p.append(f'<circle cx="{SBX + vi*24 + 12}" cy="{SBY+SBH+18}" r="9" fill="{fc}"/>')
         p.append(f'<text x="{SBX+5*24+4}" y="{SBY+SBH+23}" font-family="monospace" '
                  f'font-size="11" fill="#484f58">{votes}/5</text>')
 
-        # stat cells
         stats = [
             ("SMA12",  f"${sma12:,.0f}"),
             ("RSI14",  f"{rsi14:.1f}" if rsi14 is not None else "N/A"),
@@ -346,7 +335,6 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
             p.append(f'<text x="{sx}" y="{BY+118}" font-family="monospace" '
                      f'font-size="13" font-weight="bold" fill="#8b949e">{_esc(val)}</text>')
 
-        # sparkline
         spark = df["close"].tail(48).tolist()
         SPX, SPY, SPW, SPH = PAD, BY+132, W-PAD*2, 72
         pts = _sparkline(spark, SPX, SPY, SPW, SPH)
@@ -359,19 +347,16 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
         p.append(f'<polyline points="{pts}" fill="none" stroke="{meta["hex"]}" '
                  f'stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>')
 
-        # current price dot on sparkline
         last_pt = pts.split()[-1]
         dot_x, dot_y = last_pt.split(",")
         p.append(f'<circle cx="{dot_x}" cy="{dot_y}" r="4" fill="{meta["hex"]}"/>')
         p.append(f'<circle cx="{dot_x}" cy="{dot_y}" r="7" fill="{meta["hex"]}" opacity="0.25"/>')
 
-        # divider
         if ci < N - 1:
             dy = HEADER_H + (ci+1)*COIN_H
             p.append(f'<line x1="{PAD}" y1="{dy}" x2="{W-PAD}" y2="{dy}" '
                      f'stroke="#21262d" stroke-width="1"/>')
 
-    # AI insight
     INS_Y = HEADER_H + N * COIN_H + 10
     if ins_lines:
         p.append(f'<line x1="{PAD}" y1="{INS_Y}" x2="{W-PAD}" y2="{INS_Y}" '
@@ -382,13 +367,11 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
             p.append(f'<text x="{PAD}" y="{INS_Y+36+li*22}" font-family="monospace" '
                      f'font-size="13" fill="#8b949e">{_esc(line)}</text>')
 
-    # method
     MTH_Y = HEADER_H + N*COIN_H + INS_H + 8
     p.append(f'<text x="{PAD}" y="{MTH_Y+14}" font-family="monospace" font-size="10" '
              f'fill="#30363d">Method: 5-factor vote [mom1H · mom3H · EMA12&gt;EMA26 · RSI(40-70) · BB_mid]  '
              f'UP&gt;=4  HOLD=3  DOWN&lt;=2</text>')
 
-    # footer
     FTY = TOTAL_H - FOOT_H + 10
     p.append(f'<line x1="{PAD}" y1="{FTY}" x2="{W-PAD}" y2="{FTY}" '
              f'stroke="#21262d" stroke-width="1"/>')
@@ -426,7 +409,7 @@ def build_caption(all_signals, all_inds, now_str):
 def send_discord_image(png_bytes, caption):
     if not WEBHOOK_URL:
         print("  DISCORD_WEBHOOK not set - skipping")
-        return
+        return False, "DISCORD_WEBHOOK not set"
     for attempt in range(MAX_RETRIES):
         try:
             resp = requests.post(
@@ -441,14 +424,16 @@ def send_discord_image(png_bytes, caption):
             )
             if resp.status_code in (200, 204):
                 print("  OK  Discord image sent")
-                return
-            print(f"  Webhook {resp.status_code}: {resp.text[:200]}")
+                return True, None
+            msg = f"HTTP {resp.status_code}: {resp.text[:200]}"
+            print(f"  Webhook {msg}")
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
         except requests.RequestException as e:
             print(f"  Webhook error: {e}")
             if attempt < MAX_RETRIES - 1:
                 time.sleep(RETRY_DELAY)
+    return False, "Max retries exceeded"
 
 
 # ═══════════════════════════════════════════════
@@ -464,6 +449,87 @@ def write_json(payload, relpath):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
+def load_json_safe(relpath):
+    path = os.path.join("data", relpath)
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ═══════════════════════════════════════════════
+#  Pred log helpers  (rolling 30-day window)
+# ═══════════════════════════════════════════════
+THIRTY_DAYS_SEC = 30 * 24 * 3600
+
+def _now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+def _ts_age_sec(iso):
+    try:
+        dt = datetime.fromisoformat(iso)
+        return (datetime.now(timezone.utc) - dt).total_seconds()
+    except Exception:
+        return 0
+
+def update_pred_log(now_utc, all_signals, all_inds, all_dfs):
+    """
+    Append a new prediction entry for each coin.
+    Also resolve the PREVIOUS entry's price_next (close the loop).
+    Prune entries older than 30 days.
+    """
+    existing = load_json_safe("pred_log.json") or {"entries": []}
+    entries  = existing.get("entries", [])
+
+    # Resolve pending entries: fill price_next from current price
+    for entry in entries:
+        if entry.get("price_next") is None:
+            ticker  = entry.get("ticker")
+            df      = all_dfs.get(ticker)
+            if df is not None:
+                # match the entry's ts to the df series; use current price as settlement
+                entry["price_next"] = float(all_inds[ticker]["last"])
+
+    # Append new entries (one per coin)
+    for ticker, signal in all_signals.items():
+        ind = all_inds.get(ticker, {})
+        entry = {
+            "ts":         now_utc,
+            "ticker":     ticker,
+            "signal":     signal,
+            "price_prev": float(ind.get("last", 0)),
+            "price_next": None,       # will be filled on next run
+            "votes":      ind.get("votes", 0),
+        }
+        entries.append(entry)
+
+    # Prune entries older than 30 days
+    entries = [e for e in entries if _ts_age_sec(e.get("ts", "")) < THIRTY_DAYS_SEC]
+
+    write_json({"updated_at": now_utc, "entries": entries}, "pred_log.json")
+    print(f"  pred_log.json: {len(entries)} entries")
+
+
+# ═══════════════════════════════════════════════
+#  Run log helpers  (rolling 30-day window)
+# ═══════════════════════════════════════════════
+MAX_LOG_ENTRIES = 720   # ~30 days × 24h × ~1 run/h
+
+def _append_run_logs(now_utc, gh_entries, dc_entries):
+    existing = load_json_safe("run_log.json") or {"gh_runs": [], "discord_runs": []}
+    gh_runs  = existing.get("gh_runs", [])
+    dc_runs  = existing.get("discord_runs", [])
+
+    gh_runs.extend(gh_entries)
+    dc_runs.extend(dc_entries)
+
+    # Prune to 30-day window
+    gh_runs = [e for e in gh_runs if _ts_age_sec(e.get("ts","")) < THIRTY_DAYS_SEC]
+    dc_runs = [e for e in dc_runs if _ts_age_sec(e.get("ts","")) < THIRTY_DAYS_SEC]
+
+    write_json({"updated_at": now_utc, "gh_runs": gh_runs, "discord_runs": dc_runs}, "run_log.json")
+    print(f"  run_log.json: gh={len(gh_runs)} dc={len(dc_runs)}")
+
 
 # ═══════════════════════════════════════════════
 #  Main
@@ -473,39 +539,78 @@ def main():
     print(f"Crypto Hourly  |  {datetime.now(timezone.utc).isoformat()}")
     print(f"{'='*60}\n")
 
+    now_utc = datetime.now(timezone.utc).isoformat()
+    now_str = datetime.fromisoformat(now_utc).strftime("%d %b %Y, %H:%M UTC")
+
+    gh_log_entries = []   # accumulate for run_log.json
+    dc_log_entries = []
+
     all_series   = {}
     all_dfs      = {}
     all_signals  = {}
     all_inds     = {}
     latest_block = {}
 
+    fetch_errors = []
+
     for idx, (ticker, coin_symbol) in enumerate(COINS.items()):
         if idx:
             time.sleep(2)
         print(f"[{idx+1}/{len(COINS)}] {ticker}")
-        df = fetch_cryptocompare_hourly(coin_symbol)
+        try:
+            df = fetch_cryptocompare_hourly(coin_symbol)
+            all_dfs[ticker]      = df
+            all_series[ticker]   = to_records(df)
+            latest_block[ticker] = {
+                "last_ts_utc": df["ts_utc"].iloc[-1].isoformat(),
+                "last_close":  float(df["close"].iloc[-1]),
+            }
+            signal, ind = predict_signal(df["close"].tolist())
+            all_signals[ticker] = signal
+            all_inds[ticker]    = ind
+            print(f"  Signal: {signal}  votes={ind.get('votes',0)}/5")
 
-        all_dfs[ticker]      = df
-        all_series[ticker]   = to_records(df)
-        latest_block[ticker] = {
-            "last_ts_utc": df["ts_utc"].iloc[-1].isoformat(),
-            "last_close":  float(df["close"].iloc[-1]),
-        }
-        signal, ind = predict_signal(df["close"].tolist())
-        all_signals[ticker] = signal
-        all_inds[ticker]    = ind
-        print(f"  Signal: {signal}  votes={ind.get('votes',0)}/5")
+            gh_log_entries.append({
+                "ts":      now_utc,
+                "level":   "OK",
+                "message": f"fetch {ticker} OK — {len(df)} candles, last=${df['close'].iloc[-1]:,.2f}, signal={signal} ({ind.get('votes',0)}/5)",
+            })
 
-    now_utc = datetime.now(timezone.utc).isoformat()
-    now_str = datetime.fromisoformat(now_utc).strftime("%d %b %Y, %H:%M UTC")
+        except Exception as e:
+            fetch_errors.append(ticker)
+            err_msg = str(e)
+            print(f"  FAILED: {err_msg}")
+            gh_log_entries.append({
+                "ts":       now_utc,
+                "level":    "ERROR",
+                "message":  f"fetch {ticker} FAILED — {err_msg}",
+                "solution": "Periksa COINDESK_API_KEY, koneksi jaringan, atau coba lagi. Semua market fallback (coinbase/kraken/bitstamp/gemini) gagal.",
+            })
+
+    if fetch_errors:
+        # abort early if no data
+        gh_log_entries.append({
+            "ts":       now_utc,
+            "level":    "FAIL",
+            "message":  f"Run ABORTED — gagal fetch: {', '.join(fetch_errors)}",
+            "solution": "Pastikan COINDESK_API_KEY valid dan quota API tidak habis.",
+        })
+        _append_run_logs(now_utc, gh_log_entries, dc_log_entries)
+        raise SystemExit(1)
 
     write_json({"generated_at_utc": now_utc, "interval": "1h", "period": "7d",
                 "series": all_series, "latest": latest_block}, "prices.json")
+    gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "prices.json written"})
 
     print("\nGroq insight...")
     insight = get_groq_insight(all_inds, all_signals)
 
-    # Serialize indicators (buang vote_map booleans jadi aman di JSON)
+    if insight:
+        gh_log_entries.append({"ts": now_utc, "level": "OK", "message": f"Groq insight OK — {insight[:80]}..."})
+    else:
+        gh_log_entries.append({"ts": now_utc, "level": "WARN", "message": "Groq insight kosong atau error (GROQ_API_KEY mungkin tidak di-set)"})
+
+    # Serialize indicators
     serialized_inds = {}
     for ticker, ind in all_inds.items():
         serialized_inds[ticker] = {
@@ -528,17 +633,46 @@ def main():
                 "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
                 "ai_insight": insight if insight else None,
                 "indicators": serialized_inds}, "prediction.json")
-    
+    gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "prediction.json written"})
+
     print("\nJSON written")
 
+    # ── Update pred_log.json ──────────────────
+    print("\nUpdating pred_log.json...")
+    try:
+        update_pred_log(now_utc, all_signals, all_inds, all_dfs)
+        gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "pred_log.json updated"})
+    except Exception as e:
+        gh_log_entries.append({"ts": now_utc, "level": "WARN", "message": f"pred_log.json update failed: {e}"})
+
     print("\nBuilding card...")
-    svg_str   = build_svg_card(all_dfs, all_signals, all_inds, insight, now_str)
-    png_bytes = svg_to_png(svg_str)
-    print(f"  PNG: {len(png_bytes)/1024:.1f} KB")
+    try:
+        svg_str   = build_svg_card(all_dfs, all_signals, all_inds, insight, now_str)
+        png_bytes = svg_to_png(svg_str)
+        print(f"  PNG: {len(png_bytes)/1024:.1f} KB")
+        gh_log_entries.append({"ts": now_utc, "level": "OK", "message": f"SVG card built, PNG={len(png_bytes)//1024}KB"})
+    except Exception as e:
+        print(f"  Card build error: {e}")
+        gh_log_entries.append({"ts": now_utc, "level": "ERROR", "message": f"Card build FAILED: {e}",
+                               "solution": "Pastikan libcairo2 terinstall (apt-get install libcairo2) dan cairosvg>=2.7.1"})
+        png_bytes = None
 
     print("\nSending to Discord...")
     caption = build_caption(all_signals, all_inds, now_str)
-    send_discord_image(png_bytes, caption)
+    if png_bytes:
+        dc_ok, dc_err = send_discord_image(png_bytes, caption)
+        if dc_ok:
+            dc_log_entries.append({"ts": now_utc, "level": "OK",    "message": "Discord image sent successfully"})
+        else:
+            dc_log_entries.append({"ts": now_utc, "level": "ERROR", "message": f"Discord send FAILED — {dc_err}",
+                                   "solution": "Periksa DISCORD_WEBHOOK URL di repository secrets. Pastikan webhook masih aktif di channel Discord."})
+    else:
+        dc_log_entries.append({"ts": now_utc, "level": "WARN", "message": "Discord send skipped — PNG build failed"})
+
+    gh_log_entries.append({"ts": now_utc, "level": "OK", "message": f"Run SUCCESS — {now_str}"})
+
+    # ── Write run_log.json ────────────────────
+    _append_run_logs(now_utc, gh_log_entries, dc_log_entries)
 
     print(f"\n{'='*60}")
     print("SUCCESS")
@@ -553,6 +687,8 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except SystemExit:
+        raise
     except Exception as e:
         print(f"\nFAILED: {e}")
         raise SystemExit(1)
