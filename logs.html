@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CryptoHourly — Logs Dashboard</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── base tokens (mirrors index.html) ───────────────────────────────── */
+:root {
+  --bg:       #080b10;
+  --bg2:      #0d1117;
+  --bg3:      #111820;
+  --bg4:      #161b22;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #e6edf3;
+  --muted:    #484f58;
+  --muted2:   #8b949e;
+  --green:    #3fb950;
+  --green2:   rgba(63,185,80,0.12);
+  --red:      #f85149;
+  --red2:     rgba(248,81,73,0.12);
+  --yellow:   #d29922;
+  --blue:     #58a6ff;
+  --purple:   #bc8cff;
+  --btc:      #f7931a;
+  --eth:      #627eea;
+  --mono:     'Space Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+  --r:        8px;
+  --r2:       12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:9999;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(88,166,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+/* ── auth overlay ─────────────────────────────────────────────────── */
+#auth-overlay{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:8000;
+}
+.auth-box{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:40px 44px;
+  width:360px;
+  position:relative;overflow:hidden;
+}
+.auth-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--blue),var(--purple),transparent);
+}
+.auth-logo{
+  font-family:var(--mono);font-size:14px;font-weight:700;
+  color:var(--text);letter-spacing:.08em;margin-bottom:6px;
+}
+.auth-logo span{color:var(--blue);}
+.auth-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:28px;}
+.auth-field{margin-bottom:14px;}
+.auth-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.auth-input{
+  width:100%;background:var(--bg3);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:10px 12px;
+  font-family:var(--mono);font-size:13px;color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.auth-input:focus{border-color:var(--blue);}
+.auth-btn{
+  width:100%;margin-top:8px;
+  background:var(--blue);color:#080b10;
+  border:none;border-radius:var(--r);
+  padding:11px;cursor:pointer;
+  font-family:var(--mono);font-size:13px;font-weight:700;
+  letter-spacing:.04em;transition:opacity .15s;
+}
+.auth-btn:hover{opacity:.85;}
+.auth-err{
+  font-family:var(--mono);font-size:11px;color:var(--red);
+  margin-top:10px;display:none;text-align:center;
+}
+.auth-err.show{display:block;}
+
+/* ── loading ────────────────────────────────────────────────────────── */
+#loading{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:7000;transition:opacity .4s;
+}
+#loading.hidden{opacity:0;pointer-events:none;}
+.loader-logo{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--blue);margin-bottom:20px;letter-spacing:.1em;}
+.loader-bar{width:200px;height:2px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.loader-fill{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;animation:load 1.2s ease forwards;}
+@keyframes load{to{width:100%;}}
+.loader-text{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px;}
+
+/* ── app shell ─────────────────────────────────────────────────────── */
+#app{display:none;position:relative;z-index:1;}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px 60px;}
+
+/* ── topbar ─────────────────────────────────────────────────────────── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:28px;
+}
+.logo{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);letter-spacing:.05em;}
+.logo span{color:var(--blue);}
+.logo-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(63,185,80,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(63,185,80,0);}}
+.last-update{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.logout-btn{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  background:transparent;border:1px solid var(--border);
+  border-radius:4px;padding:4px 10px;cursor:pointer;
+  transition:all .15s;letter-spacing:.04em;
+}
+.logout-btn:hover{color:var(--red);border-color:var(--red);}
+
+/* ── tabs ───────────────────────────────────────────────────────────── */
+.tab-bar{
+  display:flex;gap:0;
+  border-bottom:1px solid var(--border);
+  margin-bottom:24px;
+}
+.tab-btn{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:10px 20px;
+  background:transparent;border:none;
+  color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .15s;margin-bottom:-1px;
+}
+.tab-btn:hover{color:var(--muted2);}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ── section ────────────────────────────────────────────────────────── */
+.section{margin-bottom:24px;}
+.section-title{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── stat row ───────────────────────────────────────────────────────── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;
+}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);}
+.stat-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:3px;}
+
+/* ── chart card ─────────────────────────────────────────────────────── */
+.chart-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.chart-box{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;
+}
+.chart-box-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px 10px;border-bottom:1px solid var(--border);
+}
+.chart-box-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.chart-box-sub{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.chart-canvas-wrap{padding:16px;height:220px;position:relative;}
+canvas.acc-chart{width:100%!important;height:100%!important;}
+
+/* ── table ──────────────────────────────────────────────────────────── */
+.table-wrap{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;
+}
+.table-header-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-bottom:1px solid var(--border);
+}
+.table-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.table-meta{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:700px;}
+thead th{
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
+  padding:10px 14px;background:var(--bg3);
+  text-align:left;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+tbody td{
+  font-family:var(--mono);font-size:12px;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  vertical-align:middle;white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.row-true{background:rgba(63,185,80,0.06);}
+tbody tr.row-false{background:rgba(248,81,73,0.06);}
+tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
+.badge-true{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:4px;
+  background:rgba(63,185,80,.2);color:var(--green);
+  border:1px solid rgba(63,185,80,.3);
+}
+.badge-false{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:4px;
+  background:rgba(248,81,73,.2);color:var(--red);
+  border:1px solid rgba(248,81,73,.3);
+}
+.badge-pending{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:4px;
+  background:rgba(210,153,34,.2);color:var(--yellow);
+  border:1px solid rgba(210,153,34,.3);
+}
+.sig-up{color:var(--green);font-weight:700;}
+.sig-down{color:var(--red);font-weight:700;}
+.sig-hold{color:var(--yellow);font-weight:700;}
+.price-cell{color:var(--muted2);}
+.ticker-btc{color:var(--btc);}
+.ticker-eth{color:var(--eth);}
+
+/* ── terminal card ──────────────────────────────────────────────────── */
+.terminal-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;margin-bottom:16px;
+}
+.terminal-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg3);
+}
+.terminal-dots{display:flex;gap:5px;}
+.terminal-dots span{width:10px;height:10px;border-radius:50%;}
+.dot-red{background:#f85149;}
+.dot-yellow{background:#d29922;}
+.dot-green{background:#3fb950;}
+.terminal-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px;}
+.terminal-status{
+  margin-left:auto;font-family:var(--mono);font-size:10px;
+  padding:2px 8px;border-radius:3px;
+}
+.terminal-status.ok{background:rgba(63,185,80,.15);color:var(--green);}
+.terminal-status.err{background:rgba(248,81,73,.15);color:var(--red);}
+.terminal-status.warn{background:rgba(210,153,34,.15);color:var(--yellow);}
+.terminal-body{
+  padding:14px 18px;
+  max-height:320px;overflow-y:auto;
+  font-family:var(--mono);font-size:12px;line-height:1.8;
+}
+.log-line{display:flex;gap:10px;padding:1px 0;}
+.log-ts{color:var(--muted);flex-shrink:0;font-size:11px;}
+.log-tag{font-weight:700;flex-shrink:0;font-size:11px;}
+.log-msg{color:var(--muted2);word-break:break-all;}
+.log-tag.ok,.log-msg.ok{color:var(--green);}
+.log-tag.err,.log-msg.err{color:var(--red);}
+.log-tag.warn,.log-msg.warn{color:var(--yellow);}
+.log-tag.info,.log-msg.info{color:var(--blue);}
+.log-tag.true-r{color:var(--green);}
+.log-tag.false-r{color:var(--red);}
+.log-empty{font-family:var(--mono);font-size:12px;color:var(--muted);font-style:italic;padding:20px 0;}
+
+/* ── coin tab filter ─────────────────────────────────────────────────── */
+.coin-filter{display:flex;gap:6px;margin-bottom:14px;}
+.coin-pill{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:4px 14px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--border);background:transparent;
+  color:var(--muted);transition:all .15s;
+}
+.coin-pill:hover{color:var(--muted2);}
+.coin-pill.all.active{background:rgba(88,166,255,.15);color:var(--blue);border-color:var(--blue);}
+.coin-pill.btc.active{background:rgba(247,147,26,.15);color:var(--btc);border-color:var(--btc);}
+.coin-pill.eth.active{background:rgba(98,126,234,.15);color:var(--eth);border-color:var(--eth);}
+
+/* ── empty state ─────────────────────────────────────────────────────── */
+.empty-state{
+  text-align:center;padding:40px;
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+}
+.empty-state div:first-child{font-size:24px;margin-bottom:8px;opacity:.3;}
+
+/* ── no-data banner ──────────────────────────────────────────────────── */
+.no-data-banner{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 18px;margin-bottom:16px;
+  font-family:var(--mono);font-size:12px;color:var(--muted2);
+}
+.no-data-banner strong{color:var(--blue);}
+
+/* ── footer ─────────────────────────────────────────────────────────── */
+.footer{border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.footer-left{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.footer-links{display:flex;gap:14px;}
+.footer-links a{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:var(--blue);}
+
+/* ── responsive ──────────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .chart-pair{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:560px){
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .auth-box{width:92vw;padding:28px 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── AUTH OVERLAY ──────────────────────────────────────────────────── -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">CRYPTO_<span>HOURLY</span></div>
+    <div class="auth-sub">// logs dashboard — restricted access</div>
+    <div class="auth-field">
+      <label class="auth-label" for="inp-user">Username</label>
+      <input class="auth-input" id="inp-user" type="text" autocomplete="username" placeholder="username"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-label" for="inp-pass">Password</label>
+      <input class="auth-input" id="inp-pass" type="password" autocomplete="current-password" placeholder="••••••••"/>
+    </div>
+    <button class="auth-btn" onclick="doLogin()">LOGIN</button>
+    <div class="auth-err" id="auth-err">Credentials tidak valid.</div>
+  </div>
+</div>
+
+<!-- ── LOADING ────────────────────────────────────────────────────────── -->
+<div id="loading" style="display:none;">
+  <div class="loader-logo">LOGS_DASHBOARD</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-text" id="load-text">Memuat data logs...</div>
+</div>
+
+<!-- ── APP ───────────────────────────────────────────────────────────── -->
+<div id="app">
+  <div class="wrap">
+
+    <!-- topbar -->
+    <div class="topbar">
+      <div>
+        <div class="logo">CRYPTO_<span>LOGS</span></div>
+        <div class="logo-sub">// internal dashboard — @fbrianzy</div>
+      </div>
+      <div class="topbar-right">
+        <div class="last-update">
+          <span class="pulse"></span>
+          <span id="last-ts">—</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+      </div>
+    </div>
+
+    <!-- tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('predict',this)">Logs Predict</button>
+      <button class="tab-btn" onclick="switchTab('reqdata',this)">Logs Req &amp; Data</button>
+    </div>
+
+    <!-- ══ TAB: PREDICT ════════════════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-predict">
+
+      <!-- stat row -->
+      <div class="section">
+        <div class="section-title">Ringkasan Akurasi</div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-label">Akurasi 7 Hari</div>
+            <div class="stat-val" id="acc-7d">—</div>
+            <div class="stat-sub" id="acc-7d-sub">— / — prediksi benar</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Akurasi 30 Hari</div>
+            <div class="stat-val" id="acc-30d">—</div>
+            <div class="stat-sub" id="acc-30d-sub">— / — prediksi benar</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Prediksi</div>
+            <div class="stat-val" id="acc-total">—</div>
+            <div class="stat-sub" id="acc-total-sub">dalam 30 hari terakhir</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Verifikasi</div>
+            <div class="stat-val" id="acc-pending">—</div>
+            <div class="stat-sub">menunggu harga berikutnya</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- charts -->
+      <div class="section">
+        <div class="section-title">Grafik Akurasi</div>
+        <div class="chart-pair">
+          <div class="chart-box">
+            <div class="chart-box-header">
+              <div class="chart-box-title">Akurasi Harian — 7 Hari Terakhir</div>
+              <div class="chart-box-sub">% benar per hari</div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chart-7d"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-header">
+              <div class="chart-box-title">Akurasi Harian — 30 Hari Terakhir</div>
+              <div class="chart-box-sub">% benar per hari</div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chart-30d"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div class="section">
+        <div class="section-title">Rekapan Prediksi — 30 Hari Terakhir</div>
+        <div class="coin-filter">
+          <button class="coin-pill all active" onclick="filterTable('all',this)">Semua</button>
+          <button class="coin-pill btc" onclick="filterTable('BTC-USD',this)">BTC</button>
+          <button class="coin-pill eth" onclick="filterTable('ETH-USD',this)">ETH</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header-bar">
+            <div class="table-title">Riwayat Prediksi</div>
+            <div class="table-meta" id="table-meta">Memuat...</div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Koin</th>
+                  <th>Harga Sebelumnya</th>
+                  <th>Prediksi</th>
+                  <th>Harga Saat Ini</th>
+                  <th>Delta</th>
+                  <th>Hasil</th>
+                </tr>
+              </thead>
+              <tbody id="pred-tbody">
+                <tr><td colspan="7"><div class="empty-state"><div>⏳</div>Memuat data...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-predict -->
+
+    <!-- ══ TAB: REQ & DATA ════════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-reqdata">
+
+      <!-- GitHub Actions Logs -->
+      <div class="section">
+        <div class="section-title">GitHub Actions — Run Logs</div>
+        <div class="terminal-card" id="term-gh">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="terminal-title">hourly.yml — fetch_predict.py</div>
+            <div class="terminal-status" id="gh-status">—</div>
+          </div>
+          <div class="terminal-body" id="gh-body">
+            <div class="log-empty">Memuat logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discord Bot Logs -->
+      <div class="section">
+        <div class="section-title">Discord Bot — Webhook Logs</div>
+        <div class="terminal-card" id="term-discord">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="terminal-title">discord_webhook — image delivery</div>
+            <div class="terminal-status" id="dc-status">—</div>
+          </div>
+          <div class="terminal-body" id="dc-body">
+            <div class="log-empty">Memuat logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prediction Eval Logs -->
+      <div class="section">
+        <div class="section-title">Evaluasi Prediksi — Terminal</div>
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="terminal-title">prediction_eval — 30d rolling</div>
+            <div class="terminal-status ok" id="pred-eval-status">LIVE</div>
+          </div>
+          <div class="terminal-body" id="pred-eval-body">
+            <div class="log-empty">Memuat logs...</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-reqdata -->
+
+    <!-- footer -->
+    <footer class="footer">
+      <div class="footer-left">Crypto Logs · @fbrianzy · Auto-update via GitHub Actions</div>
+      <div class="footer-links">
+        <a href="./index.html">← Dashboard</a>
+        <a href="https://github.com/fbrianzy/crypto-hourly/" target="_blank">GitHub</a>
+      </div>
+    </footer>
+
+  </div><!-- /wrap -->
+</div><!-- /app -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   AUTH  (SHA-256 — hanya hash yang disimpan di repo, bukan plaintext)
+═══════════════════════════════════════════════ */
+const SESSION_KEY = 'ch_logs_auth';
+
+// authConfig menyimpan username plaintext + SHA-256 hex dari password
+let authConfig = { username: '', password_hash: '' };
+
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function loadAuthConfig() {
+  try {
+    const r = await fetch('./data/logs_auth.json?v=' + Date.now());
+    if (r.ok) {
+      const d = await r.json();
+      // logs_auth.json menyimpan: { "username": "...", "password_hash": "<sha256hex>" }
+      authConfig.username      = d.username      || '';
+      authConfig.password_hash = d.password_hash || '';
+    }
+  } catch(e) {
+    console.warn('logs_auth.json not found, blocking access');
+  }
+}
+
+function checkSession() {
+  return sessionStorage.getItem(SESSION_KEY) === 'ok';
+}
+
+async function doLogin() {
+  const u   = document.getElementById('inp-user').value.trim();
+  const p   = document.getElementById('inp-pass').value;
+  const err = document.getElementById('auth-err');
+  const btn = document.querySelector('.auth-btn');
+
+  if (!authConfig.username || !authConfig.password_hash) {
+    err.textContent = 'Auth config tidak ditemukan.';
+    err.classList.add('show');
+    return;
+  }
+
+  // hash dulu di browser, baru bandingkan
+  btn.textContent = '...';
+  btn.disabled    = true;
+  const inputHash = await sha256(p);
+  btn.textContent = 'LOGIN';
+  btn.disabled    = false;
+
+  if (u === authConfig.username && inputHash === authConfig.password_hash) {
+    sessionStorage.setItem(SESSION_KEY, 'ok');
+    err.classList.remove('show');
+    document.getElementById('auth-overlay').style.display = 'none';
+    bootApp();
+  } else {
+    err.textContent = 'Credentials tidak valid.';
+    err.classList.add('show');
+    document.getElementById('inp-pass').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+// Enter key — doLogin is async, safe to call without await here
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('auth-overlay').style.display !== 'none') {
+    doLogin();
+  }
+});
+
+
+/* ═══════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function loadJSON(p) {
+  return fetch(p + '?v=' + Date.now()).then(r => {
+    if (!r.ok) throw new Error(r.status + ' ' + p);
+    return r.json();
+  });
+}
+
+function fmt(n) {
+  if (n == null) return '—';
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(n) {
+  if (n == null) return '—';
+  const s = n >= 0 ? '+' : '';
+  return s + Number(n).toFixed(2) + '%';
+}
+
+function tsAbs(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+  } catch { return iso; }
+}
+
+function dateLabel(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
+  } catch { return iso; }
+}
+
+/* Evaluate a single prediction entry.
+   Returns true/false/null(pending)
+   UP   → benar jika price_next > price_prev
+   DOWN → benar jika price_next < price_prev
+   HOLD → benar jika |delta| < 0.1%
+*/
+function evalPred(entry) {
+  const sig = entry.signal;
+  const prev = entry.price_prev;
+  const curr = entry.price_next;
+  if (curr == null) return null; // pending
+  const delta = (curr - prev) / prev;
+  if (sig === 'UP')   return curr > prev;
+  if (sig === 'DOWN') return curr < prev;
+  if (sig === 'HOLD') return Math.abs(delta) < 0.001;
+  return null;
+}
+
+
+/* ═══════════════════════════════════════════════
+   STATS & TABLE
+═══════════════════════════════════════════════ */
+let allEntries = [];
+let currentFilter = 'all';
+
+function computeStats(entries) {
+  const now = Date.now();
+  const d7  = now - 7  * 86400000;
+  const d30 = now - 30 * 86400000;
+
+  const e30 = entries.filter(e => new Date(e.ts).getTime() >= d30);
+  const e7  = entries.filter(e => new Date(e.ts).getTime() >= d7);
+
+  function acc(list) {
+    const evaluated = list.filter(e => evalPred(e) !== null);
+    const correct   = evaluated.filter(e => evalPred(e) === true);
+    return { total: list.length, evaluated: evaluated.length, correct: correct.length };
+  }
+
+  const s30 = acc(e30);
+  const s7  = acc(e7);
+  const pending = entries.filter(e => evalPred(e) === null).length;
+
+  return { s7, s30, pending, total30: e30.length };
+}
+
+function renderStats(entries) {
+  const { s7, s30, pending, total30 } = computeStats(entries);
+
+  const pct = (c, t) => t > 0 ? (c / t * 100).toFixed(1) + '%' : '—';
+
+  document.getElementById('acc-7d').textContent  = pct(s7.correct, s7.evaluated);
+  document.getElementById('acc-7d-sub').textContent  = `${s7.correct} / ${s7.evaluated} prediksi benar`;
+  document.getElementById('acc-30d').textContent = pct(s30.correct, s30.evaluated);
+  document.getElementById('acc-30d-sub').textContent = `${s30.correct} / ${s30.evaluated} prediksi benar`;
+  document.getElementById('acc-total').textContent  = total30;
+  document.getElementById('acc-pending').textContent = pending;
+}
+
+function renderTable(entries, filter) {
+  const tbody = document.getElementById('pred-tbody');
+  const filtered = filter === 'all' ? entries : entries.filter(e => e.ticker === filter);
+  const meta = document.getElementById('table-meta');
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div>📭</div>Belum ada data prediksi.</div></td></tr>`;
+    meta.textContent = '0 entri';
+    return;
+  }
+
+  meta.textContent = `${filtered.length} entri`;
+
+  // sort descending by ts
+  const sorted = [...filtered].sort((a, b) => new Date(b.ts) - new Date(a.ts));
+
+  tbody.innerHTML = sorted.map(e => {
+    const result = evalPred(e);
+    const rowCls = result === true ? 'row-true' : result === false ? 'row-false' : '';
+    const delta  = e.price_next != null ? ((e.price_next - e.price_prev) / e.price_prev * 100) : null;
+    const sigCls = e.signal === 'UP' ? 'sig-up' : e.signal === 'DOWN' ? 'sig-down' : 'sig-hold';
+    const tCls   = e.ticker === 'BTC-USD' ? 'ticker-btc' : 'ticker-eth';
+    const badge  = result === true
+      ? '<span class="badge-true">TRUE</span>'
+      : result === false
+      ? '<span class="badge-false">FALSE</span>'
+      : '<span class="badge-pending">PENDING</span>';
+
+    return `<tr class="${rowCls}">
+      <td>${tsAbs(e.ts)}</td>
+      <td class="${tCls}">${e.ticker.replace('-USD','')}</td>
+      <td class="price-cell">${fmt(e.price_prev)}</td>
+      <td><span class="${sigCls}">${e.signal}</span></td>
+      <td class="price-cell">${e.price_next != null ? fmt(e.price_next) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="color:${delta == null ? 'var(--muted)' : delta >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(delta)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.coin-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable(allEntries, currentFilter);
+}
+
+
+/* ═══════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════ */
+let chart7, chart30;
+
+function buildDailyData(entries, days) {
+  const now  = Date.now();
+  const from = now - days * 86400000;
+  const filtered = entries.filter(e => new Date(e.ts).getTime() >= from && evalPred(e) !== null);
+
+  // group by UTC date
+  const map = {};
+  filtered.forEach(e => {
+    const d = new Date(e.ts);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+    if (!map[key]) map[key] = { correct: 0, total: 0 };
+    map[key].total++;
+    if (evalPred(e)) map[key].correct++;
+  });
+
+  const keys = Object.keys(map).sort();
+  return {
+    labels: keys.map(k => { const p=k.split('-'); return `${p[1]}/${p[2]}`; }),
+    data:   keys.map(k => map[k].total > 0 ? +(map[k].correct / map[k].total * 100).toFixed(1) : 0),
+  };
+}
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#0d1117',
+      borderColor: 'rgba(255,255,255,0.1)',
+      borderWidth: 1,
+      titleFont: { family: "'Space Mono', monospace", size: 10 },
+      bodyFont:  { family: "'Space Mono', monospace", size: 11 },
+      callbacks: {
+        label: ctx => ` Akurasi: ${ctx.parsed.y}%`
+      }
+    },
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.04)' },
+      ticks: { color: '#484f58', font: { family: "'Space Mono', monospace", size: 10 } },
+    },
+    y: {
+      min: 0, max: 100,
+      grid: { color: 'rgba(255,255,255,0.04)' },
+      ticks: {
+        color: '#484f58',
+        font: { family: "'Space Mono', monospace", size: 10 },
+        callback: v => v + '%',
+        stepSize: 25,
+      },
+    },
+  },
+};
+
+function renderCharts(entries) {
+  const d7  = buildDailyData(entries, 7);
+  const d30 = buildDailyData(entries, 30);
+
+  const barColor  = 'rgba(88,166,255,0.7)';
+  const barHover  = 'rgba(88,166,255,1)';
+
+  if (chart7)  chart7.destroy();
+  if (chart30) chart30.destroy();
+
+  chart7 = new Chart(document.getElementById('chart-7d'), {
+    type: 'bar',
+    data: {
+      labels: d7.labels,
+      datasets: [{
+        data: d7.data,
+        backgroundColor: d7.data.map(v => v >= 60 ? 'rgba(63,185,80,0.6)' : v >= 40 ? 'rgba(88,166,255,0.6)' : 'rgba(248,81,73,0.6)'),
+        borderRadius: 4,
+        borderSkipped: false,
+      }],
+    },
+    options: CHART_DEFAULTS,
+  });
+
+  chart30 = new Chart(document.getElementById('chart-30d'), {
+    type: 'bar',
+    data: {
+      labels: d30.labels,
+      datasets: [{
+        data: d30.data,
+        backgroundColor: d30.data.map(v => v >= 60 ? 'rgba(63,185,80,0.6)' : v >= 40 ? 'rgba(88,166,255,0.6)' : 'rgba(248,81,73,0.6)'),
+        borderRadius: 4,
+        borderSkipped: false,
+      }],
+    },
+    options: CHART_DEFAULTS,
+  });
+}
+
+
+/* ═══════════════════════════════════════════════
+   TERMINAL LOGS
+═══════════════════════════════════════════════ */
+function renderTerminal(containerId, statusId, logs, type) {
+  const body = document.getElementById(containerId);
+  const status = document.getElementById(statusId);
+
+  if (!logs || !logs.length) {
+    body.innerHTML = `<div class="log-empty">Belum ada logs yang tersimpan.</div>`;
+    status.textContent = 'NO DATA';
+    status.className = 'terminal-status warn';
+    return;
+  }
+
+  // determine overall status from last few entries
+  const recent = logs.slice(-5);
+  const hasErr = recent.some(l => l.level === 'ERROR' || l.level === 'FAIL');
+  const hasOk  = recent.some(l => l.level === 'OK' || l.level === 'SUCCESS');
+  status.textContent = hasErr ? 'ERROR' : 'OK';
+  status.className   = 'terminal-status ' + (hasErr ? 'err' : 'ok');
+
+  body.innerHTML = [...logs].reverse().map(l => {
+    const lvl = (l.level || 'INFO').toUpperCase();
+    let tagCls = 'info';
+    if (lvl === 'OK' || lvl === 'SUCCESS') tagCls = 'ok';
+    else if (lvl === 'ERROR' || lvl === 'FAIL') tagCls = 'err';
+    else if (lvl === 'WARN') tagCls = 'warn';
+    else if (lvl === 'TRUE') tagCls = 'true-r';
+    else if (lvl === 'FALSE') tagCls = 'false-r';
+
+    const msg = l.message || '';
+    const solution = l.solution ? `<br><span style="color:var(--yellow);padding-left:90px;">→ ${l.solution}</span>` : '';
+
+    return `<div class="log-line">
+      <span class="log-ts">${tsAbs(l.ts)}</span>
+      <span class="log-tag ${tagCls}">[${lvl}]</span>
+      <span class="log-msg">${msg}${solution}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPredEval(entries) {
+  const body = document.getElementById('pred-eval-body');
+  if (!entries || !entries.length) {
+    body.innerHTML = `<div class="log-empty">Belum ada data prediksi untuk dievaluasi.</div>`;
+    return;
+  }
+
+  const sorted = [...entries].sort((a, b) => new Date(b.ts) - new Date(a.ts));
+
+  body.innerHTML = sorted.map(e => {
+    const result = evalPred(e);
+    const delta  = e.price_next != null ? ((e.price_next - e.price_prev) / e.price_prev * 100) : null;
+    const ticker = e.ticker.replace('-USD', '');
+
+    let lvl, tagCls, msg;
+    if (result === null) {
+      lvl = 'WAIT'; tagCls = 'warn';
+      msg = `[${ticker}] Prediksi ${e.signal} @ ${fmt(e.price_prev)} → menunggu harga berikutnya`;
+    } else if (result === true) {
+      lvl = 'TRUE'; tagCls = 'true-r';
+      msg = `[${ticker}] Prediksi ${e.signal} @ ${fmt(e.price_prev)} → ${fmt(e.price_next)} (${fmtPct(delta)}) — BENAR`;
+    } else {
+      lvl = 'FALSE'; tagCls = 'false-r';
+      let reason = '';
+      if (e.signal === 'UP' && e.price_next <= e.price_prev)   reason = `harga turun/flat`;
+      if (e.signal === 'DOWN' && e.price_next >= e.price_prev) reason = `harga naik/flat`;
+      if (e.signal === 'HOLD') reason = `delta ${fmtPct(delta)} melampaui threshold`;
+      msg = `[${ticker}] Prediksi ${e.signal} @ ${fmt(e.price_prev)} → ${fmt(e.price_next)} (${fmtPct(delta)}) — SALAH, ${reason}`;
+    }
+
+    return `<div class="log-line">
+      <span class="log-ts">${tsAbs(e.ts)}</span>
+      <span class="log-tag ${tagCls}">[${lvl}]</span>
+      <span class="log-msg">${msg}</span>
+    </div>`;
+  }).join('');
+}
+
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+async function bootApp() {
+  const loading = document.getElementById('loading');
+  const app     = document.getElementById('app');
+  const loadTxt = document.getElementById('load-text');
+
+  loading.style.display = 'flex';
+
+  try {
+    loadTxt.textContent = 'Memuat config auth...';
+    // already loaded
+
+    loadTxt.textContent = 'Memuat data prediksi...';
+    let predLog = [];
+    try {
+      const d = await loadJSON('./data/pred_log.json');
+      predLog = d.entries || [];
+    } catch(e) {
+      console.warn('pred_log.json not found:', e.message);
+    }
+
+    loadTxt.textContent = 'Memuat run logs...';
+    let runLog = { gh_runs: [], discord_runs: [] };
+    try {
+      const d = await loadJSON('./data/run_log.json');
+      runLog = d;
+    } catch(e) {
+      console.warn('run_log.json not found:', e.message);
+    }
+
+    loadTxt.textContent = 'Memuat timestamp...';
+    let lastTs = null;
+    try {
+      const d = await loadJSON('./data/prediction.json');
+      lastTs = d.generated_at_utc;
+    } catch(e) {}
+
+    if (lastTs) {
+      document.getElementById('last-ts').textContent = 'Updated ' + tsAbs(lastTs);
+    }
+
+    // render
+    allEntries = predLog;
+    renderStats(predLog);
+    renderCharts(predLog);
+    renderTable(predLog, currentFilter);
+    renderTerminal('gh-body', 'gh-status', runLog.gh_runs || [], 'gh');
+    renderTerminal('dc-body', 'dc-status', runLog.discord_runs || [], 'discord');
+    renderPredEval(predLog);
+
+  } catch(err) {
+    console.error(err);
+    loadTxt.textContent = 'Error: ' + err.message;
+    setTimeout(() => loading.classList.add('hidden'), 2000);
+    app.style.display = 'block';
+    return;
+  }
+
+  loading.classList.add('hidden');
+  setTimeout(() => {
+    loading.style.display = 'none';
+    app.style.display = 'block';
+  }, 450);
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+(async function init() {
+  await loadAuthConfig();
+
+  if (checkSession()) {
+    document.getElementById('auth-overlay').style.display = 'none';
+    await bootApp();
+  }
+  // else: auth overlay is visible, doLogin() triggers bootApp
+})();
+</script>
+</body>
+</html>
