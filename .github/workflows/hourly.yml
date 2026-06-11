@@ -52,6 +52,22 @@ jobs:
       - name: Install cairosvg system deps
         run: sudo apt-get install -y libcairo2
 
+      - name: Write logs auth config (SHA-256 hashed)
+        env:
+          LOGS_USERNAME: ${{ secrets.LOGS_USERNAME }}
+          LOGS_PASSWORD: ${{ secrets.LOGS_PASSWORD }}
+        run: |
+          mkdir -p data
+          python3 - <<'PYEOF'
+          import hashlib, json, os
+          username = os.environ["LOGS_USERNAME"]
+          password = os.environ["LOGS_PASSWORD"]
+          pwd_hash = hashlib.sha256(password.encode()).hexdigest()
+          with open("data/logs_auth.json", "w") as f:
+              json.dump({"username": username, "password_hash": pwd_hash}, f)
+          print(f"logs_auth.json written — username={username}, hash={pwd_hash[:12]}...")
+          PYEOF
+
       - name: Generate data & prediction
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
