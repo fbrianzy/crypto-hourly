@@ -42,8 +42,6 @@ body{
   min-height:100vh;
   overflow-x:hidden;
 }
-
-/* ── scanline texture overlay ── */
 body::before{
   content:'';
   position:fixed;inset:0;
@@ -57,8 +55,6 @@ body::before{
   pointer-events:none;
   z-index:9999;
 }
-
-/* ── grid bg ── */
 body::after{
   content:'';
   position:fixed;inset:0;
@@ -69,10 +65,7 @@ body::after{
   pointer-events:none;
   z-index:0;
 }
-
 .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 20px 60px;}
-
-/* ── top bar ── */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 0;
@@ -100,8 +93,6 @@ body::after{
   animation:pulse 2s ease-in-out infinite;
 }
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(63,185,80,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(63,185,80,0);}}
-
-/* ── hero price cards ── */
 .price-row{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -166,8 +157,6 @@ body::after{
   font-size:11px;color:var(--muted2);
   margin-top:4px;
 }
-
-/* ── signal badge ── */
 .signal-wrap{
   position:absolute;top:20px;right:20px;
   display:flex;flex-direction:column;align-items:flex-end;gap:6px;
@@ -191,8 +180,6 @@ body::after{
 .vote-pip.on{background:var(--green);}
 .vote-pip.off{background:var(--bg3);border:1px solid var(--border2);}
 .votes-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px;}
-
-/* ── chart section ── */
 .section{margin-bottom:20px;}
 .section-title{
   font-family:var(--mono);
@@ -207,7 +194,6 @@ body::after{
   content:'';flex:1;height:1px;
   background:var(--border);
 }
-
 .chart-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -244,8 +230,6 @@ body::after{
 }
 .toggle-btn.active{background:var(--bg2);color:var(--text);}
 .chart-body{height:260px;position:relative;}
-
-/* ── indicators row ── */
 .indicators-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -270,8 +254,6 @@ body::after{
   color:var(--text);
 }
 .ind-sub{font-size:11px;color:var(--muted2);margin-top:2px;font-family:var(--mono);}
-
-/* ── factors section ── */
 .factors-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -319,8 +301,6 @@ body::after{
   font-family:var(--mono);font-size:11px;color:var(--muted);
   margin-left:8px;
 }
-
-/* ── AI insight ── */
 .ai-card{
   background:var(--bg2);
   border:1px solid var(--border);
@@ -355,8 +335,6 @@ body::after{
   font-family:var(--mono);font-size:12px;color:var(--muted);
   font-style:italic;
 }
-
-/* ── method ── */
 .method-card{
   background:var(--bg3);
   border:1px solid var(--border);
@@ -378,7 +356,44 @@ body::after{
 }
 .chip span{color:var(--blue);}
 
-/* ── footer ── */
+/* ── Mini prediction terminal (NEW) ── */
+.mini-terminal{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  overflow:hidden;
+}
+.mini-terminal-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg3);
+}
+.mini-terminal-dots{display:flex;gap:5px;}
+.mini-terminal-dots span{width:8px;height:8px;border-radius:50%;}
+.mt-dot-r{background:#f85149;}
+.mt-dot-y{background:#d29922;}
+.mt-dot-g{background:#3fb950;}
+.mini-terminal-title{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px;}
+.mini-terminal-badge{
+  margin-left:auto;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:3px;
+}
+.mini-terminal-badge.live{background:rgba(63,185,80,.15);color:var(--green);}
+.mini-terminal-body{
+  padding:12px 16px;
+  max-height:200px;overflow-y:auto;
+  font-family:var(--mono);font-size:11px;line-height:1.9;
+}
+.mt-line{display:flex;gap:8px;}
+.mt-ts{color:var(--muted);flex-shrink:0;font-size:10px;}
+.mt-tag{font-weight:700;flex-shrink:0;}
+.mt-tag.ok{color:var(--green);}
+.mt-tag.err{color:var(--red);}
+.mt-tag.wait{color:var(--yellow);}
+.mt-msg{color:var(--muted2);}
+.mt-empty{color:var(--muted);font-style:italic;padding:6px 0;font-family:var(--mono);font-size:11px;}
+
 .footer{
   border-top:1px solid var(--border);
   padding-top:20px;
@@ -392,8 +407,6 @@ body::after{
   text-decoration:none;transition:color .15s;
 }
 .footer-links a:hover{color:var(--blue);}
-
-/* ── loading / error ── */
 .loading-screen{
   position:fixed;inset:0;
   background:var(--bg);
@@ -422,8 +435,6 @@ body::after{
   font-family:var(--mono);font-size:11px;color:var(--muted);
   margin-top:12px;
 }
-
-/* ── responsive ── */
 @media(max-width:900px){
   .price-row,.chart-grid,.factors-grid{grid-template-columns:1fr;}
   .indicators-grid{grid-template-columns:repeat(2,1fr);}
@@ -433,8 +444,6 @@ body::after{
   .indicators-grid{grid-template-columns:1fr 1fr;}
   .price-now{font-size:24px;}
 }
-
-/* ── stagger reveal ── */
 .reveal{
   opacity:0;transform:translateY(12px);
   animation:reveal .5s ease forwards;
@@ -447,11 +456,11 @@ body::after{
 .d5{animation-delay:.33s;}
 .d6{animation-delay:.40s;}
 .d7{animation-delay:.47s;}
+.d8{animation-delay:.54s;}
 </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div class="loading-screen" id="loading">
   <div class="loader-logo">CRYPTO_HOURLY</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
@@ -460,7 +469,6 @@ body::after{
 
 <div class="wrap" id="app" style="display:none;">
 
-  <!-- Top bar -->
   <div class="topbar">
     <div class="logo">CRYPTO_<span>HOURLY</span></div>
     <div class="last-update">
@@ -469,48 +477,51 @@ body::after{
     </div>
   </div>
 
-  <!-- Price hero cards -->
   <div class="section reveal d1">
     <div class="section-title">Harga Sekarang</div>
-    <div class="price-row" id="price-row">
-      <!-- injected -->
-    </div>
+    <div class="price-row" id="price-row"></div>
   </div>
 
-  <!-- Charts -->
   <div class="section reveal d2">
     <div class="section-title">Chart 7 Hari</div>
-    <div class="chart-grid" id="chart-grid">
-      <!-- injected -->
-    </div>
+    <div class="chart-grid" id="chart-grid"></div>
   </div>
 
-  <!-- Indicators -->
   <div class="section reveal d3">
     <div class="section-title">Indikator Teknikal</div>
-    <div id="ind-grid" class="indicators-grid">
-      <!-- injected -->
-    </div>
+    <div id="ind-grid" class="indicators-grid"></div>
   </div>
 
-  <!-- Factors -->
   <div class="section reveal d4">
     <div class="section-title">Faktor Prediksi <span style="color:var(--muted);font-weight:400;font-size:10px;letter-spacing:0;">(5-factor voting)</span></div>
-    <div class="factors-grid" id="factors-grid">
-      <!-- injected -->
-    </div>
+    <div class="factors-grid" id="factors-grid"></div>
   </div>
 
-  <!-- AI Insight -->
   <div class="section reveal d5">
     <div class="section-title">AI Insight</div>
-    <div class="ai-card" id="ai-card">
-      <!-- injected -->
+    <div class="ai-card" id="ai-card"></div>
+  </div>
+
+  <!-- ── Evaluasi Prediksi Hari Ini (NEW) ── -->
+  <div class="section reveal d6" id="mini-term-section" style="display:none;">
+    <div class="section-title">Evaluasi Prediksi Hari Ini</div>
+    <div class="mini-terminal">
+      <div class="mini-terminal-header">
+        <div class="mini-terminal-dots">
+          <span class="mt-dot-r"></span>
+          <span class="mt-dot-y"></span>
+          <span class="mt-dot-g"></span>
+        </div>
+        <div class="mini-terminal-title">prediction_eval — today only (UTC)</div>
+        <span class="mini-terminal-badge live">LIVE</span>
+      </div>
+      <div class="mini-terminal-body" id="mini-term-body">
+        <div class="mt-empty">Memuat evaluasi...</div>
+      </div>
     </div>
   </div>
 
-  <!-- Method -->
-  <div class="section reveal d6">
+  <div class="section reveal d7">
     <div class="section-title">Metodologi</div>
     <div class="method-card">
       <div class="method-title">Signal Logic</div>
@@ -529,8 +540,7 @@ body::after{
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="footer reveal d7">
+  <footer class="footer reveal d8">
     <div class="footer-left">
       Crypto Bot by @fbrianzy · Auto-update via GitHub Actions
     </div>
@@ -541,10 +551,10 @@ body::after{
     </div>
   </footer>
 
-</div><!-- /wrap -->
+</div>
 
 <script>
-// ── helpers ─────────────────────────────────────────────────────────────
+/* ── helpers ── */
 async function loadJSON(p){
   const r = await fetch(p + '?v=' + Date.now());
   if(!r.ok) throw new Error('fetch ' + p + ' → ' + r.status);
@@ -557,27 +567,95 @@ function toLocal(ts){
 function fmt(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtPct(n){ const s=n>=0?'+':''; return s+Number(n).toFixed(2)+'%'; }
 function clrClass(n){ return n>=0?'up':'down'; }
-function clrVal(n){ return n>=0?'var(--green)':'var(--red)'; }
 
-// ── main ─────────────────────────────────────────────────────────────────
+/* ── mini terminal helpers ── */
+function evalEntry(e){
+  const sig=e.signal, prev=e.price_prev, curr=e.price_next;
+  if(curr==null) return null;
+  if(sig==='UP')   return curr > prev;
+  if(sig==='DOWN') return curr < prev;
+  if(sig==='HOLD') return Math.abs((curr-prev)/prev) < 0.001;
+  return null;
+}
+function fmtTsShort(iso){
+  try{
+    const d=new Date(iso);
+    const pad=n=>String(n).padStart(2,'0');
+    return pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+' UTC';
+  }catch{ return iso; }
+}
+function renderMiniTerminal(entries){
+  const section = document.getElementById('mini-term-section');
+  const body    = document.getElementById('mini-term-body');
+  if(!entries||!entries.length){ return; }
+
+  const todayUTC = new Date().toISOString().slice(0,10);
+  const todayEntries = entries.filter(e => e.ts && e.ts.startsWith(todayUTC));
+
+  if(!todayEntries.length){
+    body.innerHTML = `<div class="mt-empty">Belum ada prediksi hari ini (${todayUTC} UTC).</div>`;
+    section.style.display = '';
+    return;
+  }
+
+  const sorted = [...todayEntries].sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+
+  body.innerHTML = sorted.map(e=>{
+    const r   = evalEntry(e);
+    const tkr = (e.ticker||'').replace('-USD','');
+    const delta = e.price_next!=null ? ((e.price_next-e.price_prev)/e.price_prev*100) : null;
+    const dStr  = delta!=null ? ` (${delta>=0?'+':''}${delta.toFixed(2)}%)` : '';
+    const prevFmt = '$'+Number(e.price_prev).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const currFmt = e.price_next!=null ? '$'+Number(e.price_next).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+
+    if(r===null){
+      return `<div class="mt-line">
+        <span class="mt-ts">${fmtTsShort(e.ts)}</span>
+        <span class="mt-tag wait">[WAIT]</span>
+        <span class="mt-msg">[${tkr}] Prediksi ${e.signal} @ ${prevFmt} — menunggu harga berikutnya</span>
+      </div>`;
+    } else if(r===true){
+      return `<div class="mt-line">
+        <span class="mt-ts">${fmtTsShort(e.ts)}</span>
+        <span class="mt-tag ok">[TRUE]</span>
+        <span class="mt-msg">[${tkr}] Prediksi ${e.signal} @ ${prevFmt} → ${currFmt}${dStr} — BENAR</span>
+      </div>`;
+    } else {
+      return `<div class="mt-line">
+        <span class="mt-ts">${fmtTsShort(e.ts)}</span>
+        <span class="mt-tag err">[FALSE]</span>
+        <span class="mt-msg">[${tkr}] Prediksi ${e.signal} @ ${prevFmt} → ${currFmt}${dStr} — SALAH</span>
+      </div>`;
+    }
+  }).join('');
+
+  section.style.display = '';
+}
+
+/* ── main ── */
 async function main(){
   const [prices, pred] = await Promise.all([
     loadJSON('./data/prices.json'),
     loadJSON('./data/prediction.json'),
   ]);
 
-  const series  = prices.series;
-  const latest  = prices.latest;
-  const signals = pred.next_1h_prediction || {};
-  const insight = pred.ai_insight || '';
-  const method  = pred.method || '';
-  const factors = pred.factors || {};   // populated by new script
-  const indicators = pred.indicators || {}; // populated by new script
+  // Load pred_log for mini terminal
+  let predLogEntries = [];
+  try{
+    const pl = await loadJSON('./data/pred_log.json');
+    predLogEntries = pl.entries || [];
+  }catch(e){ /* pred_log.json belum ada — skip */ }
+
+  const series     = prices.series;
+  const latest     = prices.latest;
+  const signals    = pred.next_1h_prediction || {};
+  const insight    = pred.ai_insight || '';
+  const indicators = pred.indicators || {};
 
   document.getElementById('last-ts').textContent =
     'Updated ' + toLocal(prices.generated_at_utc);
 
-  // ── price cards ─────────────────────────────────────────────────────
+  /* ── price cards ── */
   const priceRow = document.getElementById('price-row');
   const coins    = ['BTC-USD','ETH-USD'];
   const coinCls  = {'BTC-USD':'btc','ETH-USD':'eth'};
@@ -619,7 +697,7 @@ async function main(){
     `);
   });
 
-  // ── charts ───────────────────────────────────────────────────────────
+  /* ── charts ── */
   const chartGrid = document.getElementById('chart-grid');
   const chartInstances = {};
 
@@ -648,15 +726,13 @@ async function main(){
 
   window._chartData = chartInstances;
 
-  // ── indicators ───────────────────────────────────────────────────────
+  /* ── indicators ── */
   const indGrid = document.getElementById('ind-grid');
   coins.forEach(ticker => {
     const ind = indicators[ticker] || {};
     const sym = coinSym[ticker];
     const lat = latest[ticker];
-    const ser = series[ticker]||[];
 
-    // compute from series if no indicators saved
     const last  = lat.last_close;
     const rsi   = ind.rsi14 ?? null;
     const sma12 = ind.sma12 ?? null;
@@ -665,7 +741,7 @@ async function main(){
     const ema12 = ind.ema12 ?? null;
     const ema26 = ind.ema26 ?? null;
 
-    const rsiColor = rsi ? (rsi < 30?'var(--red)':rsi>70?'var(--red)':'var(--green)') : 'var(--muted2)';
+    const rsiColor = rsi ? (rsi<30?'var(--red)':rsi>70?'var(--red)':'var(--green)') : 'var(--muted2)';
 
     indGrid.insertAdjacentHTML('beforeend',`
       <div class="ind-card">
@@ -693,22 +769,18 @@ async function main(){
     `);
   });
 
-  // ── factors ──────────────────────────────────────────────────────────
+  /* ── factors ── */
   const factorsGrid = document.getElementById('factors-grid');
-
   const FACTOR_LABELS = {
-    mom_1h:  'Momentum 1 Jam',
-    mom_3h:  'Momentum 3 Jam',
-    ema_x:   'EMA12 > EMA26',
-    rsi:     'RSI (40–70 range)',
-    bb_pos:  'Close > BB Mid',
+    mom_1h:'Momentum 1 Jam', mom_3h:'Momentum 3 Jam',
+    ema_x:'EMA12 > EMA26', rsi:'RSI (40–70 range)', bb_pos:'Close > BB Mid',
   };
   const FACTOR_DESC = {
-    mom_1h:  v => v ? 'Harga naik vs 1 jam lalu' : 'Harga turun vs 1 jam lalu',
-    mom_3h:  v => v ? 'Harga naik vs 3 jam lalu' : 'Harga turun vs 3 jam lalu',
-    ema_x:   v => v ? 'EMA cepat di atas EMA lambat' : 'EMA cepat di bawah EMA lambat',
-    rsi:     v => v ? 'RSI di zona sehat (40–70)' : 'RSI di zona jenuh',
-    bb_pos:  v => v ? 'Harga di atas garis tengah BB' : 'Harga di bawah garis tengah BB',
+    mom_1h: v => v?'Harga naik vs 1 jam lalu':'Harga turun vs 1 jam lalu',
+    mom_3h: v => v?'Harga naik vs 3 jam lalu':'Harga turun vs 3 jam lalu',
+    ema_x:  v => v?'EMA cepat di atas EMA lambat':'EMA cepat di bawah EMA lambat',
+    rsi:    v => v?'RSI di zona sehat (40–70)':'RSI di zona jenuh',
+    bb_pos: v => v?'Harga di atas garis tengah BB':'Harga di bawah garis tengah BB',
   };
 
   coins.forEach(ticker => {
@@ -718,8 +790,6 @@ async function main(){
     const vm   = ind.vote_map || {};
     const sig  = signals[ticker] || 'HOLD';
     const votes= ind.votes ?? 0;
-
-    // build factor rows from vote_map if available, else from indicators
     const factorKeys = ['mom_1h','mom_3h','ema_x','rsi','bb_pos'];
 
     let rows = factorKeys.map(k => {
@@ -736,8 +806,7 @@ async function main(){
             <span class="factor-result ${bull?'bull':'bear'}">${bull?'Bullish':'Bearish'}</span>
             <span class="factor-val">${desc}</span>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
 
     factorsGrid.insertAdjacentHTML('beforeend',`
@@ -751,7 +820,7 @@ async function main(){
     `);
   });
 
-  // ── AI insight ───────────────────────────────────────────────────────
+  /* ── AI insight ── */
   const aiCard = document.getElementById('ai-card');
   if(insight){
     aiCard.innerHTML = `
@@ -759,24 +828,25 @@ async function main(){
         <span class="ai-badge">AI INSIGHT</span>
         <span class="ai-model">Groq · llama-3.1-8b-instant</span>
       </div>
-      <div class="ai-text">${insight.replace(/\n/g,'<br/>')}</div>
-    `;
+      <div class="ai-text">${insight.replace(/\n/g,'<br/>')}</div>`;
   } else {
     aiCard.innerHTML = `
       <div class="ai-header">
         <span class="ai-badge">AI INSIGHT</span>
         <span class="ai-model">Groq · llama-3.1-8b-instant</span>
       </div>
-      <div class="ai-empty">Insight tidak tersedia untuk update ini.</div>
-    `;
+      <div class="ai-empty">Insight tidak tersedia untuk update ini.</div>`;
   }
 
-  // ── done ─────────────────────────────────────────────────────────────
+  /* ── mini terminal (NEW) ── */
+  renderMiniTerminal(predLogEntries);
+
+  /* ── done ── */
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('app').style.display = '';
 }
 
-// ── chart builder ────────────────────────────────────────────────────────
+/* ── chart builder ── */
 function buildChart(containerId, seriesData, color, mode, ticker){
   const el = document.getElementById(containerId);
   el.innerHTML = '';
@@ -804,9 +874,9 @@ function buildChart(containerId, seriesData, color, mode, ticker){
       textColor:   '#484f58',
     },
     timeScale: {
-      borderColor:   'rgba(255,255,255,0.06)',
-      timeVisible:   true,
-      secondsVisible:false,
+      borderColor:    'rgba(255,255,255,0.06)',
+      timeVisible:    true,
+      secondsVisible: false,
       tickMarkFormatter: (t) => {
         const d = new Date(t*1000);
         return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
@@ -825,78 +895,59 @@ function buildChart(containerId, seriesData, color, mode, ticker){
     close: d.close,
   })).sort((a,b)=>a.time-b.time);
 
-  // remove duplicate times
   const seen = new Set();
   const uniq = data.filter(d => { if(seen.has(d.time)) return false; seen.add(d.time); return true; });
 
   if(mode==='candle'){
-    // detect up/down per candle
-    const upColor   = '#3fb950';
-    const downColor = '#f85149';
+    const upColor='#3fb950', downColor='#f85149';
     const cs = chart.addCandlestickSeries({
       upColor, downColor,
-      borderUpColor:   upColor,
-      borderDownColor: downColor,
-      wickUpColor:     upColor,
-      wickDownColor:   downColor,
+      borderUpColor: upColor, borderDownColor: downColor,
+      wickUpColor: upColor,   wickDownColor: downColor,
     });
-    // for line data, create synthetic OHLC from close
     const ohlc = uniq.map((d,i,arr) => {
       const prev = i>0?arr[i-1].close:d.close;
       return {
         time:  d.time,
         open:  prev,
-        high:  Math.max(prev, d.close) * (1 + Math.random()*0.001),
-        low:   Math.min(prev, d.close) * (1 - Math.random()*0.001),
+        high:  Math.max(prev,d.close)*(1+Math.random()*0.001),
+        low:   Math.min(prev,d.close)*(1-Math.random()*0.001),
         close: d.close,
       };
     });
     cs.setData(ohlc);
   } else {
-    // area
     const last  = uniq[uniq.length-1]?.close;
     const first = uniq[0]?.close;
     const isUp  = last >= first;
-    const lineClr = isUp ? '#3fb950' : '#f85149';
-    const topClr  = isUp ? 'rgba(63,185,80,0.15)' : 'rgba(248,81,73,0.15)';
-    const botClr  = isUp ? 'rgba(63,185,80,0)' : 'rgba(248,81,73,0)';
-
+    const lineClr = isUp?'#3fb950':'#f85149';
+    const topClr  = isUp?'rgba(63,185,80,0.15)':'rgba(248,81,73,0.15)';
+    const botClr  = isUp?'rgba(63,185,80,0)':'rgba(248,81,73,0)';
     const as = chart.addAreaSeries({
-      lineColor:     lineClr,
-      topColor:      topClr,
-      bottomColor:   botClr,
-      lineWidth:     2,
-      priceLineVisible: false,
-      lastValueVisible: true,
+      lineColor: lineClr, topColor: topClr, bottomColor: botClr,
+      lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
     });
     as.setData(uniq.map(d=>({time:d.time, value:d.close})));
   }
 
   chart.timeScale().fitContent();
-
-  // store ref for resize
   el._chart = chart;
-  window.addEventListener('resize', () => {
-    chart.applyOptions({ width: el.clientWidth });
-  });
+  window.addEventListener('resize', () => { chart.applyOptions({ width: el.clientWidth }); });
 }
 
-// ── chart toggle ─────────────────────────────────────────────────────────
+/* ── chart toggle ── */
 function switchChart(btn){
   const id   = btn.dataset.id;
   const mode = btn.dataset.mode;
-
-  // toggle active class
   btn.closest('.chart-type-toggle').querySelectorAll('.toggle-btn')
      .forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
-  const data  = window._chartData[id];
+  const data = window._chartData[id];
   if(!data) return;
   buildChart(id, data.series, data.color, mode, data.ticker);
 }
 
-// ── boot ─────────────────────────────────────────────────────────────────
+/* ── boot ── */
 main().catch(err => {
   console.error(err);
   document.getElementById('loading').innerHTML = `
