@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-11T12:49:25.770408+00:00",
+  "updated_at": "2026-06-11T16:56:36.892016+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-11T06:40:03.541275+00:00",
@@ -120,6 +120,46 @@
       "ts": "2026-06-11T12:49:25.770408+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 11 Jun 2026, 12:49 UTC"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 168 candles, last=$62,545.66, signal=HOLD (3/5)"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 168 candles, last=$1,638.79, signal=DOWN (2/5)"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC sedang dalam kondisi stabil dengan RSI di bawah 60, menunjukkan potensi peni..."
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=137KB"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 11 Jun 2026, 16:56 UTC"
     }
   ],
   "discord_runs": [
@@ -135,6 +175,11 @@
     },
     {
       "ts": "2026-06-11T12:49:25.770408+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-11T16:56:36.892016+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
