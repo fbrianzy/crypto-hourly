@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-11T06:40:03.541275+00:00",
+  "updated_at": "2026-06-11T08:56:09.260789+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-11T06:40:03.541275+00:00",
@@ -40,11 +40,56 @@
       "ts": "2026-06-11T06:40:03.541275+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 11 Jun 2026, 06:40 UTC"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 168 candles, last=$62,873.72, signal=UP (5/5)"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 168 candles, last=$1,659.77, signal=UP (5/5)"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Berdasarkan indikator 1 jam, BTC menunjukkan tren bullish dengan RSI di bawah 70..."
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=129KB"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 11 Jun 2026, 08:56 UTC"
     }
   ],
   "discord_runs": [
     {
       "ts": "2026-06-11T06:40:03.541275+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-11T08:56:09.260789+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
