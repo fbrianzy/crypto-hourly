@@ -1,0 +1,21 @@
+{
+  "updated_at": "2026-06-11T06:40:03.541275+00:00",
+  "entries": [
+    {
+      "ts": "2026-06-11T06:40:03.541275+00:00",
+      "ticker": "BTC-USD",
+      "signal": "UP",
+      "price_prev": 62889.12,
+      "price_next": null,
+      "votes": 5
+    },
+    {
+      "ts": "2026-06-11T06:40:03.541275+00:00",
+      "ticker": "ETH-USD",
+      "signal": "UP",
+      "price_prev": 1659.13,
+      "price_next": null,
+      "votes": 5
+    }
+  ]
+}
