@@ -1,12 +1,12 @@
 {
-  "generated_at_utc": "2026-06-12T10:53:16.317852+00:00",
+  "generated_at_utc": "2026-06-12T10:54:00.421122+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
   "method": "xgboost_tuned_threshold_BTC29f_ETH37f",
   "note": "UP=prob_up>=threshold, DOWN=prob_up<threshold. Threshold tuned for best Macro F1.",
-  "ai_insight": "Berikut adalah insight singkat untuk kedua koin:\n\nBTC: Berdasarkan model XGBoost, sinyal untuk BTC adalah DOWN dengan prob_up 33,6% yang masih di bawah threshold 0,41. Indikator teknikal menunjukkan bahwa harga masih dalam tren naik dengan RSI 56,2 dan EMA12 yang melebihi EMA26.\n\nETH: Sinyal untuk ETH juga DOWN dengan prob_up 44,2% yang masih di bawah threshold 0,5. Indikator teknikal menunjukkan bahwa harga masih dalam tren naik dengan RSI",
+  "ai_insight": "Berikut adalah insight singkat untuk kedua koin:\n\nBTC: Sinyal penurunan BTC terdeteksi dengan probabilitas peningkatan 33,6% yang lebih rendah dari threshold 0,41, menunjukkan kemungkinan penurunan harga. Indikator teknikal seperti RSI dan momen juga mendukung sinyal penurunan.\n\nETH: Sinyal penurunan ETH terdeteksi dengan probabilitas peningkatan 44,2% yang lebih rendah dari threshold 0,50, menunjukkan kemungkinan penurunan harga.",
   "indicators": {
     "BTC-USD": {
       "last": 63643.69,
