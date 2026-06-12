@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 import cairosvg
 import requests
 import pandas as pd
+import numpy as np
+import joblib
 
 # ═══════════════════════════════════════════════
 #  Config
@@ -32,6 +34,55 @@ SIGNAL_STYLE = {
     "HOLD": {"label": "HOLD", "bg": "#F59E0B", "fg": "#ffffff"},
 }
 
+# Model paths — loaded once at startup
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "model")
+
+_models = {}
+_thresholds = {}
+
+# BTC features (extended_features=False): 29 features excluding Date & Target
+BTC_FEATURES = [
+    "Open", "High", "Low", "Close", "Volume",
+    "RSI_14", "EMA_12", "EMA_26", "ATR_14",
+    "BB_Upper", "BB_Middle", "BB_Lower", "Dist_BB_Upper", "Dist_BB_Lower",
+    "MA50_1D", "Dist_MA50_1D",
+    "Close_Lag_1", "Close_Lag_2", "Close_Lag_3",
+    "Return_1H", "Return_2H", "Return_3H",
+    "EMA_Spread", "ATR_Ratio", "BB_Position", "Volatility_24H",
+    "Volume_MA20", "Volume_Ratio",
+    "Trend_1D",
+]
+
+# ETH features (extended_features=True): 37 features
+ETH_FEATURES = BTC_FEATURES + [
+    "Dist_EMA12", "Dist_EMA26",
+    "Trend_Strength",
+    "RSI_Overbought", "RSI_Oversold",
+    "Candle_Range", "Body_Size",
+    "Volume_Change",
+]
+
+ASSET_FEATURES = {
+    "BTC-USD": BTC_FEATURES,
+    "ETH-USD": ETH_FEATURES,
+}
+
+
+def load_models():
+    """Load XGBoost models and optimal thresholds from disk."""
+    for ticker in COINS:
+        model_path     = os.path.join(MODEL_DIR, f"xgb_tuned_{ticker}.pkl")
+        threshold_path = os.path.join(MODEL_DIR, f"threshold_{ticker}.pkl")
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model not found: {model_path}")
+        if not os.path.exists(threshold_path):
+            raise FileNotFoundError(f"Threshold not found: {threshold_path}")
+
+        _models[ticker]     = joblib.load(model_path)
+        _thresholds[ticker] = float(joblib.load(threshold_path))
+        print(f"  Loaded model: {ticker}  threshold={_thresholds[ticker]:.2f}")
+
 
 # ═══════════════════════════════════════════════
 #  Data fetching
@@ -40,6 +91,7 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
     """
     Fetch 168 candles dari CoinDesk Data API (spot OHLCV hourly).
     Mencoba beberapa market sebagai fallback.
+    Returns DataFrame with columns: ts_utc, open, high, low, close, volume
     """
     MARKETS_TO_TRY = ["coinbase", "kraken", "bitstamp", "gemini"]
 
@@ -53,8 +105,8 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
         params = {
             "market":     market,
             "instrument": f"{coin_symbol}-USD",
-            "limit":      168,
-            "groups":     "OHLC",
+            "limit":      300,   # need more candles for feature engineering (MA50 needs 50d)
+            "groups":     "OHLC,VOLUME",
         }
 
         for attempt in range(MAX_RETRIES):
@@ -84,8 +136,19 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
                 for d in data_list:
                     ts    = d.get("TIMESTAMP")
                     close = d.get("CLOSE")
+                    open_ = d.get("OPEN")
+                    high  = d.get("HIGH")
+                    low   = d.get("LOW")
+                    vol   = d.get("VOLUME", 0)
                     if ts and close:
-                        rows.append({"timestamp": ts, "close": float(close)})
+                        rows.append({
+                            "timestamp": ts,
+                            "open":  float(open_ or close),
+                            "high":  float(high  or close),
+                            "low":   float(low   or close),
+                            "close": float(close),
+                            "volume": float(vol or 0),
+                        })
 
                 if not rows:
                     raise ValueError("No valid rows after parsing")
@@ -94,7 +157,7 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
                 df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
                 df = df.sort_values("ts_utc").reset_index(drop=True)
                 print(f"  OK  {len(df)} candles [{market}] | last: ${df['close'].iloc[-1]:,.2f}")
-                return df[["ts_utc", "close"]]
+                return df[["ts_utc", "open", "high", "low", "close", "volume"]]
 
             except requests.RequestException as e:
                 print(f"  Request error [{market}]: {e}")
@@ -112,73 +175,174 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
 
 
 # ═══════════════════════════════════════════════
-#  Technical indicators
+#  Feature Engineering (mirrors FeatureEngineering.ipynb)
 # ═══════════════════════════════════════════════
-def _ema(series, n):
-    k = 2 / (n + 1)
-    e = series[0]
-    for v in series[1:]:
-        e = v * k + e * (1 - k)
-    return e
+def _ema_series(series: pd.Series, n: int) -> pd.Series:
+    return series.ewm(span=n, adjust=False).mean()
 
-def _rsi(series, n=14):
-    if len(series) < n + 1:
-        return None
-    deltas = [series[i] - series[i-1] for i in range(1, len(series))]
-    gains  = [d for d in deltas if d > 0]
-    losses = [-d for d in deltas if d < 0]
-    avg_g  = sum(gains[-n:])  / n
-    avg_l  = sum(losses[-n:]) / n
-    if avg_l == 0:
-        return 100.0
-    return 100 - 100 / (1 + avg_g / avg_l)
+def build_features(df: pd.DataFrame, extended: bool) -> pd.DataFrame:
+    """
+    Replicate the create_features() logic from FeatureEngineering.ipynb.
+    Input df must have columns: ts_utc, open, high, low, close, volume
+    Returns a single-row DataFrame of the latest feature values.
+    """
+    d = df.copy()
+    d = d.rename(columns={
+        "ts_utc": "Date",
+        "open": "Open", "high": "High", "low": "Low",
+        "close": "Close", "volume": "Volume",
+    })
+    d["Date"] = pd.to_datetime(d["Date"])
+    d = d.sort_values("Date").set_index("Date")
 
-def _bollinger(series, n=20):
-    window = series[-n:]
-    mid    = sum(window) / n
-    std    = (sum((x - mid)**2 for x in window) / n) ** 0.5
-    return mid - 2*std, mid, mid + 2*std
+    # RSI
+    delta  = d["Close"].diff()
+    gain   = delta.clip(lower=0).rolling(14).mean()
+    loss   = (-delta.clip(upper=0)).rolling(14).mean()
+    rs     = gain / loss
+    d["RSI_14"] = 100 - 100 / (1 + rs)
+
+    # EMA
+    d["EMA_12"] = _ema_series(d["Close"], 12)
+    d["EMA_26"] = _ema_series(d["Close"], 26)
+
+    # ATR
+    tr = pd.concat([
+        d["High"] - d["Low"],
+        (d["High"] - d["Close"].shift()).abs(),
+        (d["Low"]  - d["Close"].shift()).abs(),
+    ], axis=1).max(axis=1)
+    d["ATR_14"] = tr.rolling(14).mean()
+
+    # Bollinger Bands
+    bb_mid = d["Close"].rolling(20).mean()
+    bb_std = d["Close"].rolling(20).std()
+    d["BB_Upper"]     = bb_mid + 2 * bb_std
+    d["BB_Middle"]    = bb_mid
+    d["BB_Lower"]     = bb_mid - 2 * bb_std
+    d["Dist_BB_Upper"] = (d["Close"] - d["BB_Upper"]) / d["Close"]
+    d["Dist_BB_Lower"] = (d["Close"] - d["BB_Lower"]) / d["Close"]
+
+    # Multi-timeframe: Daily MA50
+    daily_close = d["Close"].resample("1D").last()
+    daily_ma50  = daily_close.rolling(50).mean()
+    d["MA50_1D"]     = daily_ma50.reindex(d.index, method="ffill")
+    d["Dist_MA50_1D"] = (d["Close"] - d["MA50_1D"]) / d["MA50_1D"]
+
+    # Lag features
+    d["Close_Lag_1"] = d["Close"].shift(1)
+    d["Close_Lag_2"] = d["Close"].shift(2)
+    d["Close_Lag_3"] = d["Close"].shift(3)
+
+    # Returns
+    d["Return_1H"] = d["Close"].pct_change(1)
+    d["Return_2H"] = d["Close"].pct_change(2)
+    d["Return_3H"] = d["Close"].pct_change(3)
+
+    # Trend
+    d["EMA_Spread"] = (d["EMA_12"] - d["EMA_26"]) / d["EMA_26"]
+
+    # Volatility
+    d["ATR_Ratio"]     = d["ATR_14"] / d["Close"]
+    d["BB_Position"]   = (d["Close"] - d["BB_Lower"]) / (d["BB_Upper"] - d["BB_Lower"])
+    d["Volatility_24H"] = d["Return_1H"].rolling(24).std()
+
+    # Volume
+    d["Volume_MA20"]  = d["Volume"].rolling(20).mean()
+    d["Volume_Ratio"] = d["Volume"] / d["Volume_MA20"]
+
+    # Macro trend
+    d["Trend_1D"] = (d["Close"] > d["MA50_1D"]).astype(int)
+
+    if extended:
+        d["Dist_EMA12"]      = (d["Close"] - d["EMA_12"]) / d["EMA_12"]
+        d["Dist_EMA26"]      = (d["Close"] - d["EMA_26"]) / d["EMA_26"]
+        d["Trend_Strength"]  = abs(d["EMA_12"] - d["EMA_26"]) / d["Close"]
+        d["RSI_Overbought"]  = (d["RSI_14"] > 70).astype(int)
+        d["RSI_Oversold"]    = (d["RSI_14"] < 30).astype(int)
+        d["Candle_Range"]    = (d["High"] - d["Low"]) / d["Close"]
+        d["Body_Size"]       = abs(d["Close"] - d["Open"]) / d["Close"]
+        d["Volume_Change"]   = np.log1p(d["Volume"]).diff()
+
+    # Clean
+    d.replace([np.inf, -np.inf], np.nan, inplace=True)
+    d.dropna(inplace=True)
+    d.reset_index(inplace=True)
+
+    return d
 
 
-def predict_signal(close_series):
-    """5-factor voting. Returns (signal, indicators_dict)."""
-    if len(close_series) < 26:
+# ═══════════════════════════════════════════════
+#  XGBoost Prediction
+# ═══════════════════════════════════════════════
+def predict_signal(df: pd.DataFrame, ticker: str):
+    """
+    Run full feature engineering then XGBoost predict_proba.
+    Returns (signal, indicators_dict).
+    signal: 'UP' (prob >= threshold) | 'DOWN' (prob < threshold)
+    """
+    extended = (ticker == "ETH-USD")
+    feature_cols = ASSET_FEATURES[ticker]
+
+    # Build features on full history
+    feat_df = build_features(df, extended=extended)
+
+    if feat_df.empty:
         return "HOLD", {}
 
-    last  = close_series[-1]
-    prev1 = close_series[-2]
-    prev3 = close_series[-4]
+    # Take the last row as the live input
+    latest = feat_df.iloc[[-1]]
 
-    mom_1h = last / prev1 - 1
-    mom_3h = last / prev3 - 1
-    ema12  = _ema(close_series[-12:], 12)
-    ema26  = _ema(close_series[-26:], 26)
-    rsi14  = _rsi(close_series[-30:], 14)
-    bb_lo, bb_mid, bb_hi = _bollinger(close_series, 20)
-    sma12  = sum(close_series[-12:]) / 12
+    # Align columns to what the model was trained on
+    X = latest[feature_cols].copy()
 
-    votes = {
-        "mom_1h": mom_1h > 0,
-        "mom_3h": mom_3h > 0,
-        "ema_x":  ema12 > ema26,
-        "rsi":    rsi14 is not None and 40 < rsi14 < 70,
-        "bb_pos": last > bb_mid,
+    model     = _models[ticker]
+    threshold = _thresholds[ticker]
+
+    prob_up = float(model.predict_proba(X)[0, 1])
+    signal  = "UP" if prob_up >= threshold else "DOWN"
+
+    # --- Indicator values for display (mirrors old vote_map structure) ---
+    row = feat_df.iloc[-1]
+
+    mom_1h  = float(row["Return_1H"]) * 100
+    mom_3h  = float(row["Return_3H"]) * 100
+    ema12   = float(row["EMA_12"])
+    ema26   = float(row["EMA_26"])
+    rsi14   = float(row["RSI_14"])
+    bb_lo   = float(row["BB_Lower"])
+    bb_mid  = float(row["BB_Middle"])
+    bb_hi   = float(row["BB_Upper"])
+    sma12   = float(latest["Close"].iloc[0])  # close as price proxy
+    last    = float(row["Close"])
+
+    # Build a human-readable breakdown of the top drivers
+    # (mirrors the old vote_map in structure for frontend compatibility)
+    indicators = {
+        "last":    last,
+        "mom_1h":  mom_1h,
+        "mom_3h":  mom_3h,
+        "sma12":   sma12,
+        "ema12":   ema12,
+        "ema26":   ema26,
+        "rsi14":   rsi14,
+        "bb_lo":   bb_lo,
+        "bb_mid":  bb_mid,
+        "bb_hi":   bb_hi,
+        "prob_up": prob_up,
+        "threshold": threshold,
+        # Keep vote_map-compatible block for frontend panels
+        "votes": round(prob_up * 5),   # scaled 0-5 for pip display
+        "vote_map": {
+            "mom_1h": mom_1h > 0,
+            "mom_3h": mom_3h > 0,
+            "ema_x":  ema12 > ema26,
+            "rsi":    40 < rsi14 < 70,
+            "bb_pos": last > bb_mid,
+        },
     }
-    score = sum(votes.values())
 
-    if score >= 4:
-        signal = "UP"
-    elif score <= 2:
-        signal = "DOWN"
-    else:
-        signal = "HOLD"
-
-    return signal, {
-        "last": last, "mom_1h": mom_1h*100, "mom_3h": mom_3h*100,
-        "sma12": sma12, "ema12": ema12, "ema26": ema26, "rsi14": rsi14,
-        "bb_lo": bb_lo, "bb_mid": bb_mid, "bb_hi": bb_hi,
-        "votes": score, "vote_map": votes,
-    }
+    return signal, indicators
 
 
 # ═══════════════════════════════════════════════
@@ -191,21 +355,24 @@ def get_groq_insight(all_inds, all_signals):
 
     lines = []
     for ticker, ind in all_inds.items():
-        sym = COIN_META[ticker]["symbol"]
-        sig = all_signals.get(ticker, "HOLD")
-        rsi = ind.get("rsi14")
+        sym  = COIN_META[ticker]["symbol"]
+        sig  = all_signals.get(ticker, "HOLD")
+        rsi  = ind.get("rsi14")
+        prob = ind.get("prob_up", 0)
+        thr  = ind.get("threshold", 0.5)
         lines.append(
             f"{sym}: signal={sig}, price=${ind['last']:,.2f}, "
+            f"prob_up={prob:.3f} (threshold={thr:.2f}), "
             f"RSI={f'{rsi:.1f}' if rsi else 'N/A'}, "
             f"mom1H={ind['mom_1h']:+.2f}%, mom3H={ind['mom_3h']:+.2f}%, "
             f"EMA12={'>' if ind['ema12']>ind['ema26'] else '<'}EMA26, "
-            f"BB={'above' if ind['last']>ind['bb_mid'] else 'below'} mid, "
-            f"votes={ind['votes']}/5"
+            f"BB={'above' if ind['last']>ind['bb_mid'] else 'below'} mid"
         )
 
     prompt = (
-        "Kamu adalah analis teknikal crypto. Berdasarkan indikator 1 jam ini, "
+        "Kamu adalah analis teknikal crypto. Berdasarkan output model XGBoost 1 jam ini, "
         "tulis insight singkat 2-3 kalimat dalam Bahasa Indonesia untuk kedua koin. "
+        "Sebutkan prob_up dan threshold sebagai dasar sinyal. "
         "Langsung ke poin, tanpa disclaimer, tanpa markdown.\n\n"
         + "\n".join(lines)
     )
@@ -276,7 +443,7 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
 
     for ci, (ticker, df) in enumerate(all_dfs.items()):
         meta   = COIN_META[ticker]
-        signal = all_signals.get(ticker, "HOLD")
+        signal = all_signals.get(ticker, "DOWN")
         ind    = all_inds.get(ticker, {})
         ss     = SIGNAL_STYLE[signal]
         BY     = HEADER_H + ci * COIN_H + 20
@@ -285,13 +452,13 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
         mom_1h  = ind.get("mom_1h", 0.0)
         mom_24h = (df["close"].iloc[-1] / df["close"].iloc[-25] - 1)*100 if len(df)>=25 else 0.0
         rsi14   = ind.get("rsi14")
-        sma12   = ind.get("sma12", 0.0)
         bb_lo   = ind.get("bb_lo", 0.0)
         bb_hi   = ind.get("bb_hi", 0.0)
         bb_mid  = ind.get("bb_mid", 0.0)
-        votes   = ind.get("votes", 0)
         ema12   = ind.get("ema12", 0.0)
         ema26   = ind.get("ema26", 0.0)
+        prob_up = ind.get("prob_up", 0.0)
+        threshold = ind.get("threshold", 0.5)
 
         c1h  = "#3fb950" if mom_1h  >= 0 else "#f85149"
         c24h = "#3fb950" if mom_24h >= 0 else "#f85149"
@@ -307,7 +474,7 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
         p.append(f'<text x="{PAD+130}" y="{BY+72}" font-family="monospace" font-size="13" '
                  f'fill="{c24h}">{a24h}{mom_24h:.2f}%  24H</text>')
 
-        SBW, SBH = 120, 40
+        SBW, SBH = 140, 40
         SBX = W - PAD - SBW
         SBY = BY + 4
         p.append(f'<rect x="{SBX}" y="{SBY}" width="{SBW}" height="{SBH}" '
@@ -316,17 +483,18 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
                  f'font-size="17" font-weight="bold" fill="{ss["fg"]}" '
                  f'text-anchor="middle" dominant-baseline="central">{ss["label"]}</text>')
 
-        for vi in range(5):
-            fc = "#3fb950" if vi < votes else "#21262d"
-            p.append(f'<circle cx="{SBX + vi*24 + 12}" cy="{SBY+SBH+18}" r="9" fill="{fc}"/>')
-        p.append(f'<text x="{SBX+5*24+4}" y="{SBY+SBH+23}" font-family="monospace" '
-                 f'font-size="11" fill="#484f58">{votes}/5</text>')
+        # Probability bar
+        bar_w = int(prob_up * 120)
+        p.append(f'<rect x="{SBX}" y="{SBY+SBH+10}" width="120" height="6" rx="3" fill="#21262d"/>')
+        p.append(f'<rect x="{SBX}" y="{SBY+SBH+10}" width="{bar_w}" height="6" rx="3" fill="{ss["bg"]}"/>')
+        p.append(f'<text x="{SBX+124}" y="{SBY+SBH+17}" font-family="monospace" '
+                 f'font-size="10" fill="#484f58">P={prob_up:.2f}</text>')
 
         stats = [
-            ("SMA12",  f"${sma12:,.0f}"),
             ("RSI14",  f"{rsi14:.1f}" if rsi14 is not None else "N/A"),
             ("EMA12",  f"{'>' if ema12>ema26 else '<'} EMA26"),
             ("BB",     f"${bb_lo:,.0f} — ${bb_hi:,.0f}"),
+            ("THR",    f"{threshold:.2f}"),
         ]
         for si, (lbl, val) in enumerate(stats):
             sx = PAD + si * 210
@@ -369,15 +537,15 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
 
     MTH_Y = HEADER_H + N*COIN_H + INS_H + 8
     p.append(f'<text x="{PAD}" y="{MTH_Y+14}" font-family="monospace" font-size="10" '
-             f'fill="#30363d">Method: 5-factor vote [mom1H · mom3H · EMA12&gt;EMA26 · RSI(40-70) · BB_mid]  '
-             f'UP&gt;=4  HOLD=3  DOWN&lt;=2</text>')
+             f'fill="#30363d">Method: XGBoost · tuned threshold · 29 features (BTC) / 37 features (ETH) · 1H OHLCV  '
+             f'UP=prob>=threshold  DOWN=prob&lt;threshold</text>')
 
     FTY = TOTAL_H - FOOT_H + 10
     p.append(f'<line x1="{PAD}" y1="{FTY}" x2="{W-PAD}" y2="{FTY}" '
              f'stroke="#21262d" stroke-width="1"/>')
     p.append(f'<text x="{PAD}" y="{FTY+18}" font-family="monospace" font-size="11" '
              f'fill="#30363d">fbrianzy.github.io/crypto-hourly  |  github.com/fbrianzy/crypto-hourly'
-             f'  |  Source: CryptoCompare</text>')
+             f'  |  Source: CoinDesk API</text>')
     p.append(f'<text x="{PAD}" y="{FTY+34}" font-family="monospace" font-size="10" '
              f'fill="#21262d">Crypto Bot by @fbrianzy  |  Auto-update via GitHub Actions</text>')
 
@@ -395,9 +563,10 @@ def svg_to_png(svg_str):
 def build_caption(all_signals, all_inds, now_str):
     parts = []
     for ticker, signal in all_signals.items():
-        meta  = COIN_META[ticker]
-        price = all_inds.get(ticker, {}).get("last", 0)
-        parts.append(f"**{meta['symbol']}** `${price:,.2f}` → **{signal}**")
+        meta    = COIN_META[ticker]
+        price   = all_inds.get(ticker, {}).get("last", 0)
+        prob_up = all_inds.get(ticker, {}).get("prob_up", 0)
+        parts.append(f"**{meta['symbol']}** `${price:,.2f}` → **{signal}** `p={prob_up:.2f}`")
     return (
         "## Crypto Hourly Update\n"
         + "  ·  ".join(parts)
@@ -473,37 +642,31 @@ def _ts_age_sec(iso):
         return 0
 
 def update_pred_log(now_utc, all_signals, all_inds, all_dfs):
-    """
-    Append a new prediction entry for each coin.
-    Also resolve the PREVIOUS entry's price_next (close the loop).
-    Prune entries older than 30 days.
-    """
     existing = load_json_safe("pred_log.json") or {"entries": []}
     entries  = existing.get("entries", [])
 
-    # Resolve pending entries: fill price_next from current price
+    # Resolve pending entries
     for entry in entries:
         if entry.get("price_next") is None:
-            ticker  = entry.get("ticker")
-            df      = all_dfs.get(ticker)
-            if df is not None:
-                # match the entry's ts to the df series; use current price as settlement
-                entry["price_next"] = float(all_inds[ticker]["last"])
+            ticker = entry.get("ticker")
+            ind    = all_inds.get(ticker)
+            if ind:
+                entry["price_next"] = float(ind["last"])
 
-    # Append new entries (one per coin)
+    # Append new entries
     for ticker, signal in all_signals.items():
         ind = all_inds.get(ticker, {})
-        entry = {
+        entries.append({
             "ts":         now_utc,
             "ticker":     ticker,
             "signal":     signal,
             "price_prev": float(ind.get("last", 0)),
-            "price_next": None,       # will be filled on next run
-            "votes":      ind.get("votes", 0),
-        }
-        entries.append(entry)
+            "price_next": None,
+            "prob_up":    float(ind.get("prob_up", 0)),
+            "threshold":  float(ind.get("threshold", 0.5)),
+        })
 
-    # Prune entries older than 30 days
+    # Prune > 30 days
     entries = [e for e in entries if _ts_age_sec(e.get("ts", "")) < THIRTY_DAYS_SEC]
 
     write_json({"updated_at": now_utc, "entries": entries}, "pred_log.json")
@@ -511,10 +674,8 @@ def update_pred_log(now_utc, all_signals, all_inds, all_dfs):
 
 
 # ═══════════════════════════════════════════════
-#  Run log helpers  (rolling 30-day window)
+#  Run log helpers
 # ═══════════════════════════════════════════════
-MAX_LOG_ENTRIES = 720   # ~30 days × 24h × ~1 run/h
-
 def _append_run_logs(now_utc, gh_entries, dc_entries):
     existing = load_json_safe("run_log.json") or {"gh_runs": [], "discord_runs": []}
     gh_runs  = existing.get("gh_runs", [])
@@ -523,7 +684,6 @@ def _append_run_logs(now_utc, gh_entries, dc_entries):
     gh_runs.extend(gh_entries)
     dc_runs.extend(dc_entries)
 
-    # Prune to 30-day window
     gh_runs = [e for e in gh_runs if _ts_age_sec(e.get("ts","")) < THIRTY_DAYS_SEC]
     dc_runs = [e for e in dc_runs if _ts_age_sec(e.get("ts","")) < THIRTY_DAYS_SEC]
 
@@ -539,10 +699,14 @@ def main():
     print(f"Crypto Hourly  |  {datetime.now(timezone.utc).isoformat()}")
     print(f"{'='*60}\n")
 
+    # Load models once
+    print("Loading models...")
+    load_models()
+
     now_utc = datetime.now(timezone.utc).isoformat()
     now_str = datetime.fromisoformat(now_utc).strftime("%d %b %Y, %H:%M UTC")
 
-    gh_log_entries = []   # accumulate for run_log.json
+    gh_log_entries = []
     dc_log_entries = []
 
     all_series   = {}
@@ -550,30 +714,38 @@ def main():
     all_signals  = {}
     all_inds     = {}
     latest_block = {}
-
     fetch_errors = []
 
     for idx, (ticker, coin_symbol) in enumerate(COINS.items()):
         if idx:
             time.sleep(2)
-        print(f"[{idx+1}/{len(COINS)}] {ticker}")
+        print(f"\n[{idx+1}/{len(COINS)}] {ticker}")
         try:
             df = fetch_cryptocompare_hourly(coin_symbol)
             all_dfs[ticker]      = df
-            all_series[ticker]   = to_records(df)
+            # Store only last 168 candles for prices.json display
+            df_display = df.tail(168).reset_index(drop=True)
+            all_series[ticker]   = to_records(df_display)
             latest_block[ticker] = {
                 "last_ts_utc": df["ts_utc"].iloc[-1].isoformat(),
                 "last_close":  float(df["close"].iloc[-1]),
             }
-            signal, ind = predict_signal(df["close"].tolist())
+
+            signal, ind = predict_signal(df, ticker)
             all_signals[ticker] = signal
             all_inds[ticker]    = ind
-            print(f"  Signal: {signal}  votes={ind.get('votes',0)}/5")
+            prob_up   = ind.get("prob_up", 0)
+            threshold = ind.get("threshold", 0.5)
+            print(f"  Signal: {signal}  prob_up={prob_up:.3f}  threshold={threshold:.2f}")
 
             gh_log_entries.append({
                 "ts":      now_utc,
                 "level":   "OK",
-                "message": f"fetch {ticker} OK — {len(df)} candles, last=${df['close'].iloc[-1]:,.2f}, signal={signal} ({ind.get('votes',0)}/5)",
+                "message": (
+                    f"fetch {ticker} OK — {len(df)} candles, "
+                    f"last=${df['close'].iloc[-1]:,.2f}, "
+                    f"signal={signal} (prob={prob_up:.2f}, thr={threshold:.2f})"
+                ),
             })
 
         except Exception as e:
@@ -583,23 +755,27 @@ def main():
             gh_log_entries.append({
                 "ts":       now_utc,
                 "level":    "ERROR",
-                "message":  f"fetch {ticker} FAILED — {err_msg}",
-                "solution": "Periksa COINDESK_API_KEY, koneksi jaringan, atau coba lagi. Semua market fallback (coinbase/kraken/bitstamp/gemini) gagal.",
+                "message":  f"fetch/predict {ticker} FAILED — {err_msg}",
+                "solution": "Periksa COINDESK_API_KEY, koneksi jaringan, atau model .pkl di folder /model/.",
             })
 
     if fetch_errors:
-        # abort early if no data
         gh_log_entries.append({
             "ts":       now_utc,
             "level":    "FAIL",
-            "message":  f"Run ABORTED — gagal fetch: {', '.join(fetch_errors)}",
-            "solution": "Pastikan COINDESK_API_KEY valid dan quota API tidak habis.",
+            "message":  f"Run ABORTED — gagal fetch/predict: {', '.join(fetch_errors)}",
+            "solution": "Pastikan COINDESK_API_KEY valid dan file model .pkl tersedia di /model/.",
         })
         _append_run_logs(now_utc, gh_log_entries, dc_log_entries)
         raise SystemExit(1)
 
-    write_json({"generated_at_utc": now_utc, "interval": "1h", "period": "7d",
-                "series": all_series, "latest": latest_block}, "prices.json")
+    write_json({
+        "generated_at_utc": now_utc,
+        "interval": "1h",
+        "period": "7d",
+        "series": all_series,
+        "latest": latest_block,
+    }, "prices.json")
     gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "prices.json written"})
 
     print("\nGroq insight...")
@@ -608,36 +784,40 @@ def main():
     if insight:
         gh_log_entries.append({"ts": now_utc, "level": "OK", "message": f"Groq insight OK — {insight[:80]}..."})
     else:
-        gh_log_entries.append({"ts": now_utc, "level": "WARN", "message": "Groq insight kosong atau error (GROQ_API_KEY mungkin tidak di-set)"})
+        gh_log_entries.append({"ts": now_utc, "level": "WARN", "message": "Groq insight kosong atau error"})
 
     # Serialize indicators
     serialized_inds = {}
     for ticker, ind in all_inds.items():
         serialized_inds[ticker] = {
-            "last":    ind.get("last"),
-            "mom_1h":  ind.get("mom_1h"),
-            "mom_3h":  ind.get("mom_3h"),
-            "sma12":   ind.get("sma12"),
-            "ema12":   ind.get("ema12"),
-            "ema26":   ind.get("ema26"),
-            "rsi14":   ind.get("rsi14"),
-            "bb_lo":   ind.get("bb_lo"),
-            "bb_mid":  ind.get("bb_mid"),
-            "bb_hi":   ind.get("bb_hi"),
-            "votes":   ind.get("votes"),
-            "vote_map": {k: bool(v) for k, v in (ind.get("vote_map") or {}).items()},
+            "last":      ind.get("last"),
+            "mom_1h":    ind.get("mom_1h"),
+            "mom_3h":    ind.get("mom_3h"),
+            "sma12":     ind.get("sma12"),
+            "ema12":     ind.get("ema12"),
+            "ema26":     ind.get("ema26"),
+            "rsi14":     ind.get("rsi14"),
+            "bb_lo":     ind.get("bb_lo"),
+            "bb_mid":    ind.get("bb_mid"),
+            "bb_hi":     ind.get("bb_hi"),
+            "prob_up":   ind.get("prob_up"),
+            "threshold": ind.get("threshold"),
+            "votes":     ind.get("votes"),       # scaled 0-5 for pip display
+            "vote_map":  {k: bool(v) for k, v in (ind.get("vote_map") or {}).items()},
         }
 
-    write_json({"generated_at_utc": now_utc, "next_1h_prediction": all_signals,
-                "method": "5factor_vote_mom1H_mom3H_EMA_RSI_BB",
-                "note": "UP>=4/5 votes bullish, DOWN<=2/5, else HOLD.",
-                "ai_insight": insight if insight else None,
-                "indicators": serialized_inds}, "prediction.json")
+    write_json({
+        "generated_at_utc": now_utc,
+        "next_1h_prediction": all_signals,
+        "method": "xgboost_tuned_threshold_BTC29f_ETH37f",
+        "note": "UP=prob_up>=threshold, DOWN=prob_up<threshold. Threshold tuned for best Macro F1.",
+        "ai_insight": insight if insight else None,
+        "indicators": serialized_inds,
+    }, "prediction.json")
     gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "prediction.json written"})
 
     print("\nJSON written")
 
-    # ── Update pred_log.json ──────────────────
     print("\nUpdating pred_log.json...")
     try:
         update_pred_log(now_utc, all_signals, all_inds, all_dfs)
@@ -654,7 +834,7 @@ def main():
     except Exception as e:
         print(f"  Card build error: {e}")
         gh_log_entries.append({"ts": now_utc, "level": "ERROR", "message": f"Card build FAILED: {e}",
-                               "solution": "Pastikan libcairo2 terinstall (apt-get install libcairo2) dan cairosvg>=2.7.1"})
+                               "solution": "Pastikan libcairo2 terinstall dan cairosvg>=2.7.1"})
         png_bytes = None
 
     print("\nSending to Discord...")
@@ -662,25 +842,24 @@ def main():
     if png_bytes:
         dc_ok, dc_err = send_discord_image(png_bytes, caption)
         if dc_ok:
-            dc_log_entries.append({"ts": now_utc, "level": "OK",    "message": "Discord image sent successfully"})
+            dc_log_entries.append({"ts": now_utc, "level": "OK", "message": "Discord image sent successfully"})
         else:
             dc_log_entries.append({"ts": now_utc, "level": "ERROR", "message": f"Discord send FAILED — {dc_err}",
-                                   "solution": "Periksa DISCORD_WEBHOOK URL di repository secrets. Pastikan webhook masih aktif di channel Discord."})
+                                   "solution": "Periksa DISCORD_WEBHOOK URL di repository secrets."})
     else:
         dc_log_entries.append({"ts": now_utc, "level": "WARN", "message": "Discord send skipped — PNG build failed"})
 
     gh_log_entries.append({"ts": now_utc, "level": "OK", "message": f"Run SUCCESS — {now_str}"})
-
-    # ── Write run_log.json ────────────────────
     _append_run_logs(now_utc, gh_log_entries, dc_log_entries)
 
     print(f"\n{'='*60}")
     print("SUCCESS")
     for ticker in COINS:
-        p = latest_block[ticker]["last_close"]
-        s = all_signals[ticker]
-        v = all_inds[ticker].get("votes", 0)
-        print(f"  {ticker}: {s}  votes={v}/5  ${p:,.2f}")
+        p   = latest_block[ticker]["last_close"]
+        s   = all_signals[ticker]
+        prb = all_inds[ticker].get("prob_up", 0)
+        thr = all_inds[ticker].get("threshold", 0.5)
+        print(f"  {ticker}: {s}  prob_up={prb:.3f}  threshold={thr:.2f}  ${p:,.2f}")
     print(f"{'='*60}\n")
 
 
