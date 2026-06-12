@@ -105,7 +105,7 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
         params = {
             "market":     market,
             "instrument": f"{coin_symbol}-USD",
-            "limit":      300,   # need more candles for feature engineering (MA50 needs 50d)
+            "limit":      1300,  # MA50_1D needs 50d × 24h = 1200 candles + buffer
             "groups":     "OHLC,VOLUME",
         }
 
@@ -293,6 +293,14 @@ def predict_signal(df: pd.DataFrame, ticker: str):
     # Take the last row as the live input
     latest = feat_df.iloc[[-1]]
 
+    # Debug: cek NaN di fitur
+    nan_cols = [c for c in feature_cols if latest[c].isna().any()]
+    if nan_cols:
+        print(f'  WARN: NaN di fitur {nan_cols} — akan diisi 0')
+        latest = latest.copy()
+        latest[nan_cols] = latest[nan_cols].fillna(0)
+
+
     # Align columns to what the model was trained on
     X = latest[feature_cols].copy()
 
@@ -364,8 +372,8 @@ def get_groq_insight(all_inds, all_signals):
             f"{sym}: signal={sig}, price=${ind.get('last', 0):,.2f}, "
             f"prob_up={prob:.3f} (threshold={thr:.2f}), "
             f"RSI={f'{rsi:.1f}' if rsi else 'N/A'}, "
-            f"mom1H={ind['mom_1h']:+.2f}%, mom3H={ind['mom_3h']:+.2f}%, "
-            f"EMA12={'>' if ind['ema12']>ind['ema26'] else '<'}EMA26, "
+            f"mom1H={ind.get('mom_1h', 0):+.2f}%, mom3H={ind.get('mom_3h', 0):+.2f}%, "
+            f"EMA12={'>' if ind.get('ema12',0)>ind.get('ema26',0) else '<'}EMA26, "
             f"BB={'above' if ind.get('last',0)>ind.get('bb_mid',0) else 'below'} mid"
         )
 
