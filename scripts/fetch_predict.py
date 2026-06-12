@@ -63,14 +63,9 @@ ETH_FEATURES = BTC_FEATURES + [
     "Volume_Change",
 ]
 
-SIGNAL_FEATURES = {
+ASSET_FEATURES = {
     "BTC-USD": BTC_FEATURES,
-    "ETH-USD": ETH_FEATURES
-}
-
-FORECAST_FEATURES = {
-    "BTC-USD": BTC_FEATURES,
-    "ETH-USD": BTC_FEATURES
+    "ETH-USD": ETH_FEATURES,
 }
 
 
@@ -296,7 +291,7 @@ def predict_signal(df: pd.DataFrame, ticker: str):
     signal: 'UP' (prob >= threshold) | 'DOWN' (prob < threshold)
     """
     extended = (ticker == "ETH-USD")
-    feature_cols = SIGNAL_FEATURES[ticker]
+    feature_cols = ASSET_FEATURES[ticker]
 
     # Build features on full history
     feat_df = build_features(df, extended=extended)
@@ -727,13 +722,13 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
     if ticker not in _forecast_models:
         return None
 
-    extended = False
+    extended = (ticker == "ETH-USD")
     try:
-        feat_df = build_features(df, extended=False)
+        feat_df = build_features(df, extended=extended)
         if feat_df.empty:
             return None
 
-        feature_cols = FORECAST_FEATURES[ticker]
+        feature_cols = ASSET_FEATURES[ticker]
         latest = feat_df.iloc[[-1]].copy()
 
         # NaN guard
@@ -742,19 +737,12 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
             latest[nan_cols] = latest[nan_cols].fillna(0)
 
         X = latest[feature_cols]
-        print(X.columns.tolist())
         model = _forecast_models[ticker]
         pred_return = float(model.predict(X)[0])
 
         current_price = float(df["close"].iloc[-1])
         current_time  = df["ts_utc"].iloc[-1]
         target_price  = current_price * (1 + pred_return)
-
-        print("="*50)
-        print(ticker)
-        print("Current :", current_price)
-        print("Pred    :", pred_return)
-        print("="*50)
 
         forecast_line = np.linspace(current_price, target_price, 24)
         future_times  = pd.date_range(
@@ -780,21 +768,18 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
         return None
 
 
-# def should_generate_forecast(ticker: str, now_utc: str) -> bool:
-#     """
-#     Hanya generate forecast baru jika belum ada untuk hari ini (UTC).
-#     Reset otomatis setiap ganti hari.
-#     """
-#     existing = load_json_safe("forecast.json")
-#     if not existing:
-#         return True
-#     today = now_utc[:10]  # "YYYY-MM-DD"
-#     generated = existing.get("generated_date", "")
-#     ticker_data = existing.get("forecasts", {}).get(ticker)
-#     return generated != today or ticker_data is None
-
 def should_generate_forecast(ticker: str, now_utc: str) -> bool:
-    return True
+    """
+    Hanya generate forecast baru jika belum ada untuk hari ini (UTC).
+    Reset otomatis setiap ganti hari.
+    """
+    existing = load_json_safe("forecast.json")
+    if not existing:
+        return True
+    today = now_utc[:10]  # "YYYY-MM-DD"
+    generated = existing.get("generated_date", "")
+    ticker_data = existing.get("forecasts", {}).get(ticker)
+    return generated != today or ticker_data is None
 
 # ═══════════════════════════════════════════════
 #  Main
