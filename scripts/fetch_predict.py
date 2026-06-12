@@ -63,9 +63,14 @@ ETH_FEATURES = BTC_FEATURES + [
     "Volume_Change",
 ]
 
-ASSET_FEATURES = {
+SIGNAL_FEATURES = {
     "BTC-USD": BTC_FEATURES,
-    "ETH-USD": BTC_FEATURES,
+    "ETH-USD": ETH_FEATURES
+}
+
+FORECAST_FEATURES = {
+    "BTC-USD": BTC_FEATURES,
+    "ETH-USD": BTC_FEATURES
 }
 
 
@@ -291,7 +296,7 @@ def predict_signal(df: pd.DataFrame, ticker: str):
     signal: 'UP' (prob >= threshold) | 'DOWN' (prob < threshold)
     """
     extended = (ticker == "ETH-USD")
-    feature_cols = ASSET_FEATURES[ticker]
+    feature_cols = SIGNAL_FEATURES[ticker]
 
     # Build features on full history
     feat_df = build_features(df, extended=extended)
@@ -722,13 +727,13 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
     if ticker not in _forecast_models:
         return None
 
-    extended = (ticker == "ETH-USD")
+    extended = False
     try:
-        feat_df = build_features(df, extended=extended)
+        feat_df = build_features(df, extended=False)
         if feat_df.empty:
             return None
 
-        feature_cols = ASSET_FEATURES[ticker]
+        feature_cols = FORECAST_FEATURES[ticker]
         latest = feat_df.iloc[[-1]].copy()
 
         # NaN guard
