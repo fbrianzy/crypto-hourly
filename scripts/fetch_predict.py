@@ -737,6 +737,7 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
             latest[nan_cols] = latest[nan_cols].fillna(0)
 
         X = latest[feature_cols]
+        print(X.columns.tolist())
         model = _forecast_models[ticker]
         pred_return = float(model.predict(X)[0])
 
