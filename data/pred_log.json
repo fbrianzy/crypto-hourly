@@ -1,0 +1,23 @@
+{
+  "updated_at": "2026-06-12T10:31:56.148181+00:00",
+  "entries": [
+    {
+      "ts": "2026-06-12T10:31:56.148181+00:00",
+      "ticker": "BTC-USD",
+      "signal": "DOWN",
+      "price_prev": 63538.43,
+      "price_next": null,
+      "prob_up": 0.30776524543762207,
+      "threshold": 0.4100000000000001
+    },
+    {
+      "ts": "2026-06-12T10:31:56.148181+00:00",
+      "ticker": "ETH-USD",
+      "signal": "UP",
+      "price_prev": 1670.98,
+      "price_next": null,
+      "prob_up": 0.5180935859680176,
+      "threshold": 0.5000000000000002
+    }
+  ]
+}
