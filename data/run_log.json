@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-12T01:57:24.778082+00:00",
+  "updated_at": "2026-06-12T06:46:05.080030+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-11T06:40:03.541275+00:00",
@@ -320,6 +320,46 @@
       "ts": "2026-06-12T01:57:24.778082+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 12 Jun 2026, 01:57 UTC"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 168 candles, last=$62,837.64, signal=DOWN (2/5)"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 168 candles, last=$1,652.69, signal=DOWN (2/5)"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC sedang mengalami penurunan, dengan RSI berada di zona netral dan EMA12 lebih..."
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=136KB"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 12 Jun 2026, 06:46 UTC"
     }
   ],
   "discord_runs": [
@@ -360,6 +400,11 @@
     },
     {
       "ts": "2026-06-12T01:57:24.778082+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-12T06:46:05.080030+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
