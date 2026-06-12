@@ -288,7 +288,7 @@ def predict_signal(df: pd.DataFrame, ticker: str):
     feat_df = build_features(df, extended=extended)
 
     if feat_df.empty:
-        return "HOLD", {}
+        return "DOWN", {}
 
     # Take the last row as the live input
     latest = feat_df.iloc[[-1]]
@@ -356,17 +356,17 @@ def get_groq_insight(all_inds, all_signals):
     lines = []
     for ticker, ind in all_inds.items():
         sym  = COIN_META[ticker]["symbol"]
-        sig  = all_signals.get(ticker, "HOLD")
+        sig  = all_signals.get(ticker, "DOWN")
         rsi  = ind.get("rsi14")
         prob = ind.get("prob_up", 0)
         thr  = ind.get("threshold", 0.5)
         lines.append(
-            f"{sym}: signal={sig}, price=${ind['last']:,.2f}, "
+            f"{sym}: signal={sig}, price=${ind.get('last', 0):,.2f}, "
             f"prob_up={prob:.3f} (threshold={thr:.2f}), "
             f"RSI={f'{rsi:.1f}' if rsi else 'N/A'}, "
             f"mom1H={ind['mom_1h']:+.2f}%, mom3H={ind['mom_3h']:+.2f}%, "
             f"EMA12={'>' if ind['ema12']>ind['ema26'] else '<'}EMA26, "
-            f"BB={'above' if ind['last']>ind['bb_mid'] else 'below'} mid"
+            f"BB={'above' if ind.get('last',0)>ind.get('bb_mid',0) else 'below'} mid"
         )
 
     prompt = (
