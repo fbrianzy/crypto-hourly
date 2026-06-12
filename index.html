@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CryptoHourly — BTC & ETH Live</title>
+<title>CryptoHourly</title>
 <meta name="description" content="Pantau harga Bitcoin dan Ethereum per jam dengan prediksi AI berbasis XGBoost, analisis teknikal, dan AI Insight dari Groq."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -180,6 +180,15 @@ body::after{
 .d1{animation-delay:.05s;}.d2{animation-delay:.12s;}.d3{animation-delay:.19s;}
 .d4{animation-delay:.26s;}.d5{animation-delay:.33s;}.d6{animation-delay:.40s;}
 .d7{animation-delay:.47s;}.d8{animation-delay:.54s;}
+/* forecast legend */
+.forecast-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.fc-legend-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--muted);}
+.fc-dot{width:18px;height:2px;border-radius:1px;}
+.fc-dot.actual{background:currentColor;}
+.fc-dot.forecast{background:var(--purple);border-top:2px dashed var(--purple);height:0;}
+.fc-dot.current{background:var(--yellow);}
+.fc-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;background:rgba(188,140,255,.12);color:var(--purple);border:1px solid rgba(188,140,255,.25);}
+.fc-none{font-family:var(--mono);font-size:10px;color:var(--muted);font-style:italic;}
 </style>
 </head>
 <body>
@@ -320,6 +329,8 @@ function renderMiniTerminal(entries){
 
 async function main(){
   const [prices,pred]=await Promise.all([loadJSON('./data/prices.json'),loadJSON('./data/prediction.json')]);
+  let forecastData={};
+  try{const fc=await loadJSON('./data/forecast.json');forecastData=fc.forecasts||{};}catch(e){}
   let predLogEntries=[];
   try{const pl=await loadJSON('./data/pred_log.json');predLogEntries=pl.entries||[];}catch(e){}
 
@@ -373,15 +384,19 @@ async function main(){
       <div class="chart-card ${cls}">
         <div class="chart-header">
           <div class="chart-title">${sym} / USD</div>
-          <div class="chart-type-toggle">
-            <button class="toggle-btn active" data-mode="area" data-id="${id}" onclick="switchChart(this)">Area</button>
-            <button class="toggle-btn" data-mode="candle" data-id="${id}" onclick="switchChart(this)">Candle</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="fc-info-${id}" class="forecast-legend"></div>
+            <div class="chart-type-toggle">
+              <button class="toggle-btn active" data-mode="area" data-id="${id}" onclick="switchChart(this)">Area</button>
+              <button class="toggle-btn" data-mode="candle" data-id="${id}" onclick="switchChart(this)">Candle</button>
+            </div>
           </div>
         </div>
         <div class="chart-body" id="${id}"></div>
       </div>`);
-    buildChart(id,series[ticker]||[],color,'area',ticker);
-    chartInstances[id]={series:series[ticker]||[],color,ticker};
+    const fcPoints=(forecastData[ticker]||{}).points||[];
+    buildChart(id,series[ticker]||[],color,'area',ticker,fcPoints);
+    chartInstances[id]={series:series[ticker]||[],color,ticker,forecast:fcPoints};
   });
   window._chartData=chartInstances;
 
@@ -464,7 +479,7 @@ async function main(){
   document.getElementById('app').style.display='';
 }
 
-function buildChart(containerId,seriesData,color,mode,ticker){
+function buildChart(containerId,seriesData,color,mode,ticker,forecastPoints){
   const el=document.getElementById(containerId);
   el.innerHTML='';
   const chart=LightweightCharts.createChart(el,{
@@ -489,6 +504,47 @@ function buildChart(containerId,seriesData,color,mode,ticker){
     const as=chart.addAreaSeries({lineColor:lineClr,topColor:topClr,bottomColor:botClr,lineWidth:2,priceLineVisible:false,lastValueVisible:true});
     as.setData(uniq.map(d=>({time:d.time,value:d.close})));
   }
+
+  /* ── Forecast overlay ── */
+  const fc=forecastPoints||[];
+  const fcEl=document.getElementById('fc-info-'+containerId);
+  if(fc.length){
+    // Garis harga sekarang (horizontal price line)
+    const currentPrice=uniq[uniq.length-1]?.value;
+    if(currentPrice!=null){
+      const nowLine=chart.addLineSeries({
+        color:'rgba(210,153,34,0.7)',lineWidth:1,
+        lineStyle:LightweightCharts.LineStyle.Dashed,
+        priceLineVisible:false,lastValueVisible:false,
+        title:'Now',
+      });
+      const nowT=uniq[uniq.length-1].time;
+      const fcLast=Math.floor(new Date(fc[fc.length-1].ts_utc).getTime()/1000);
+      nowLine.setData([{time:nowT,value:currentPrice},{time:fcLast,value:currentPrice}]);
+    }
+
+    // Garis proyeksi forecast (putus-putus ungu)
+    const fcSeen=new Set();
+    const fcUniq=fc.map(p=>({time:Math.floor(new Date(p.ts_utc).getTime()/1000),value:p.price}))
+      .filter(p=>{if(fcSeen.has(p.time))return false;fcSeen.add(p.time);return true;})
+      .sort((a,b)=>a.time-b.time);
+    const fcSeries=chart.addLineSeries({
+      color:'#bc8cff',lineWidth:2,
+      lineStyle:LightweightCharts.LineStyle.Dashed,
+      priceLineVisible:false,lastValueVisible:true,
+      title:'Forecast 24H',
+    });
+    fcSeries.setData(fcUniq);
+
+    // Target price marker
+    const targetPrice=fc[fc.length-1].price;
+    const isUp=targetPrice>=currentPrice;
+    const retPct=currentPrice?((targetPrice-currentPrice)/currentPrice*100):0;
+    if(fcEl) fcEl.innerHTML=`<span class="fc-badge">FORECAST 24H</span><span class="fc-legend-item" style="color:var(--purple)"><span class="fc-dot forecast"></span>Proyeksi</span><span class="fc-legend-item" style="color:var(--yellow)"><span class="fc-dot current"></span>Sekarang</span><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${isUp?'var(--green)':'var(--red)'}">Target: $${targetPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} (${isUp?'+':''}${retPct.toFixed(2)}%)</span>`;
+  }else{
+    if(fcEl) fcEl.innerHTML='<span class="fc-none">no forecast</span>';
+  }
+
   chart.timeScale().fitContent();
   el._chart=chart;
   window.addEventListener('resize',()=>{chart.applyOptions({width:el.clientWidth});});
@@ -500,7 +556,7 @@ function switchChart(btn){
   btn.classList.add('active');
   const data=window._chartData[id];
   if(!data)return;
-  buildChart(id,data.series,data.color,mode,data.ticker);
+  buildChart(id,data.series,data.color,mode,data.ticker,data.forecast||[]);
 }
 
 main().catch(err=>{
