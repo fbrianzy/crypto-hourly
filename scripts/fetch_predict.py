@@ -65,7 +65,7 @@ ETH_FEATURES = BTC_FEATURES + [
 
 ASSET_FEATURES = {
     "BTC-USD": BTC_FEATURES,
-    "ETH-USD": ETH_FEATURES,
+    "ETH-USD": BTC_FEATURES,
 }
 
 
@@ -741,15 +741,15 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
         model = _forecast_models[ticker]
         pred_return = float(model.predict(X)[0])
 
+        current_price = float(df["close"].iloc[-1])
+        current_time  = df["ts_utc"].iloc[-1]
+        target_price  = current_price * (1 + pred_return)
+
         print("="*50)
         print(ticker)
         print("Current :", current_price)
         print("Pred    :", pred_return)
         print("="*50)
-
-        current_price = float(df["close"].iloc[-1])
-        current_time  = df["ts_utc"].iloc[-1]
-        target_price  = current_price * (1 + pred_return)
 
         forecast_line = np.linspace(current_price, target_price, 24)
         future_times  = pd.date_range(
