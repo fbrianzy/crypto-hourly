@@ -244,7 +244,6 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 }
 .sig-up{color:var(--green);font-weight:700;}
 .sig-down{color:var(--red);font-weight:700;}
-.sig-hold{color:var(--yellow);font-weight:700;}
 .price-cell{color:var(--muted2);}
 .ticker-btc{color:var(--btc);}
 .ticker-eth{color:var(--eth);}
@@ -684,7 +683,6 @@ function dateLabel(iso) {
    Returns true/false/null(pending)
    UP   → benar jika price_next > price_prev
    DOWN → benar jika price_next < price_prev
-   HOLD → benar jika |delta| < 0.1%
 */
 function evalPred(entry) {
   const sig = entry.signal;
@@ -694,7 +692,6 @@ function evalPred(entry) {
   const delta = (curr - prev) / prev;
   if (sig === 'UP')   return curr > prev;
   if (sig === 'DOWN') return curr < prev;
-  if (sig === 'HOLD') return Math.abs(delta) < 0.001;
   return null;
 }
 
@@ -759,7 +756,7 @@ function renderTable(entries, filter) {
     const result = evalPred(e);
     const rowCls = result === true ? 'row-true' : result === false ? 'row-false' : '';
     const delta  = e.price_next != null ? ((e.price_next - e.price_prev) / e.price_prev * 100) : null;
-    const sigCls = e.signal === 'UP' ? 'sig-up' : e.signal === 'DOWN' ? 'sig-down' : 'sig-hold';
+    const sigCls = e.signal === 'UP' ? 'sig-up' : 'sig-down';
     const tCls   = e.ticker === 'BTC-USD' ? 'ticker-btc' : 'ticker-eth';
     const badge  = result === true
       ? '<span class="badge-true">TRUE</span>'
@@ -955,7 +952,6 @@ function renderPredEval(entries) {
       let reason = '';
       if (e.signal === 'UP' && e.price_next <= e.price_prev)   reason = `harga turun/flat`;
       if (e.signal === 'DOWN' && e.price_next >= e.price_prev) reason = `harga naik/flat`;
-      if (e.signal === 'HOLD') reason = `delta ${fmtPct(delta)} melampaui threshold`;
       msg = `[${ticker}] Prediksi ${e.signal} @ ${fmt(e.price_prev)} → ${fmt(e.price_next)} (${fmtPct(delta)}) — SALAH, ${reason}`;
     }
 
