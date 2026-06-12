@@ -238,7 +238,7 @@ A timing guard prevents duplicate executions caused by scheduler drift.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourname/crypto-hourly.git
+git clone https://github.com/fbrianzy/crypto-hourly.git
 
 cd crypto-hourly
 ```
