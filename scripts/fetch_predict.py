@@ -865,6 +865,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+        print("Done")
     except SystemExit:
         raise
     except Exception as e:
