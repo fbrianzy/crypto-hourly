@@ -31,7 +31,6 @@ COIN_META = {
 SIGNAL_STYLE = {
     "UP":   {"label": "UP",   "bg": "#10B981", "fg": "#ffffff"},
     "DOWN": {"label": "DOWN", "bg": "#EF4444", "fg": "#ffffff"},
-    "HOLD": {"label": "HOLD", "bg": "#F59E0B", "fg": "#ffffff"},
 }
 
 # Model paths — loaded once at startup
@@ -39,7 +38,6 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "model")
 
 _models = {}
 _thresholds = {}
-_forecast_models = {}
 
 # BTC features (extended_features=False): 29 features excluding Date & Target
 BTC_FEATURES = [
@@ -84,14 +82,6 @@ def load_models():
         _thresholds[ticker] = float(joblib.load(threshold_path))
         print(f"  Loaded model: {ticker}  threshold={_thresholds[ticker]:.2f}")
 
-        # Forecast model (optional — skip jika tidak ada)
-        forecast_path = os.path.join(MODEL_DIR, f"xgb_forecast_{ticker}.pkl")
-        if os.path.exists(forecast_path):
-            _forecast_models[ticker] = joblib.load(forecast_path)
-            print(f"  Loaded forecast model: {ticker}")
-        else:
-            print(f"  No forecast model for {ticker} — skipping")
-
 
 # ═══════════════════════════════════════════════
 #  Data fetching
@@ -114,7 +104,7 @@ def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
         params = {
             "market":     market,
             "instrument": f"{coin_symbol}-USD",
-            "limit":      1300,  # MA50_1D needs 50d × 24h = 1200 candles + buffer
+            "limit":      1300,  # MA50_1D needs 50d x 24h = 1200 candles + buffer   # need more candles for feature engineering (MA50 needs 50d)
             "groups":     "OHLC,VOLUME",
         }
 
@@ -301,14 +291,6 @@ def predict_signal(df: pd.DataFrame, ticker: str):
 
     # Take the last row as the live input
     latest = feat_df.iloc[[-1]]
-
-    # Debug: cek NaN di fitur
-    nan_cols = [c for c in feature_cols if latest[c].isna().any()]
-    if nan_cols:
-        print(f'  WARN: NaN di fitur {nan_cols} — akan diisi 0')
-        latest = latest.copy()
-        latest[nan_cols] = latest[nan_cols].fillna(0)
-
 
     # Align columns to what the model was trained on
     X = latest[feature_cols].copy()
@@ -708,79 +690,6 @@ def _append_run_logs(now_utc, gh_entries, dc_entries):
     print(f"  run_log.json: gh={len(gh_runs)} dc={len(dc_runs)}")
 
 
-
-# ═══════════════════════════════════════════════
-#  24H Forecast
-# ═══════════════════════════════════════════════
-def forecast_next_24h(df: pd.DataFrame, ticker: str):
-    """
-    Predict 24H return lalu build garis proyeksi linear 24 titik.
-    Hanya dijalankan jika forecast model tersedia.
-    Returns dict: { current_price, target_price, pred_return, points: [{ts_utc, price}] }
-    atau None jika model tidak ada / error.
-    """
-    if ticker not in _forecast_models:
-        return None
-
-    extended = (ticker == "ETH-USD")
-    try:
-        feat_df = build_features(df, extended=extended)
-        if feat_df.empty:
-            return None
-
-        feature_cols = ASSET_FEATURES[ticker]
-        latest = feat_df.iloc[[-1]].copy()
-
-        # NaN guard
-        nan_cols = [c for c in feature_cols if latest[c].isna().any()]
-        if nan_cols:
-            latest[nan_cols] = latest[nan_cols].fillna(0)
-
-        X = latest[feature_cols]
-        model = _forecast_models[ticker]
-        pred_return = float(model.predict(X)[0])
-
-        current_price = float(df["close"].iloc[-1])
-        current_time  = df["ts_utc"].iloc[-1]
-        target_price  = current_price * (1 + pred_return)
-
-        forecast_line = np.linspace(current_price, target_price, 24)
-        future_times  = pd.date_range(
-            start=current_time + pd.Timedelta(hours=1),
-            periods=24, freq="1h"
-        )
-
-        points = [
-            {"ts_utc": t.isoformat(), "price": round(float(p), 2)}
-            for t, p in zip(future_times, forecast_line)
-        ]
-
-        print(f"  Forecast {ticker}: return={pred_return:.4%}  target=${target_price:,.2f}")
-        return {
-            "current_price": round(current_price, 2),
-            "target_price":  round(target_price, 2),
-            "pred_return":   round(pred_return, 6),
-            "points":        points,
-        }
-
-    except Exception as e:
-        print(f"  Forecast error {ticker}: {e}")
-        return None
-
-
-def should_generate_forecast(ticker: str, now_utc: str) -> bool:
-    """
-    Hanya generate forecast baru jika belum ada untuk hari ini (UTC).
-    Reset otomatis setiap ganti hari.
-    """
-    existing = load_json_safe("forecast.json")
-    if not existing:
-        return True
-    today = now_utc[:10]  # "YYYY-MM-DD"
-    generated = existing.get("generated_date", "")
-    ticker_data = existing.get("forecasts", {}).get(ticker)
-    return generated != today or ticker_data is None
-
 # ═══════════════════════════════════════════════
 #  Main
 # ═══════════════════════════════════════════════
@@ -867,36 +776,6 @@ def main():
         "latest": latest_block,
     }, "prices.json")
     gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "prices.json written"})
-
-    # ── Forecast 24H ──────────────────────────────────────────────────
-    print("\nGenerating 24H forecast...")
-    today_date = now_utc[:10]
-    existing_forecast = load_json_safe("forecast.json") or {}
-    existing_fc_data  = existing_forecast.get("forecasts", {})
-    existing_date     = existing_forecast.get("generated_date", "")
-
-    all_forecasts = {} if existing_date != today_date else dict(existing_fc_data)
-
-    for ticker, df in all_dfs.items():
-        if should_generate_forecast(ticker, now_utc):
-            fc = forecast_next_24h(df, ticker)
-            if fc:
-                all_forecasts[ticker] = fc
-                gh_log_entries.append({"ts": now_utc, "level": "OK",
-                    "message": f"forecast {ticker} OK — target=${fc['target_price']:,.2f} ({fc['pred_return']:+.2%})"})
-            else:
-                gh_log_entries.append({"ts": now_utc, "level": "WARN",
-                    "message": f"forecast {ticker} skipped — no model or error"})
-        else:
-            print(f"  {ticker}: forecast sudah ada untuk hari ini, skip regenerate")
-
-    if all_forecasts:
-        write_json({
-            "generated_at_utc": now_utc,
-            "generated_date":   today_date,
-            "forecasts":        all_forecasts,
-        }, "forecast.json")
-        gh_log_entries.append({"ts": now_utc, "level": "OK", "message": "forecast.json written"})
 
     print("\nGroq insight...")
     insight = get_groq_insight(all_inds, all_signals)
