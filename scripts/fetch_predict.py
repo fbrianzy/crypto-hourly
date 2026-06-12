@@ -741,6 +741,12 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
         model = _forecast_models[ticker]
         pred_return = float(model.predict(X)[0])
 
+        print("="*50)
+        print(ticker)
+        print("Current :", current_price)
+        print("Pred    :", pred_return)
+        print("="*50)
+
         current_price = float(df["close"].iloc[-1])
         current_time  = df["ts_utc"].iloc[-1]
         target_price  = current_price * (1 + pred_return)
@@ -769,18 +775,21 @@ def forecast_next_24h(df: pd.DataFrame, ticker: str):
         return None
 
 
+# def should_generate_forecast(ticker: str, now_utc: str) -> bool:
+#     """
+#     Hanya generate forecast baru jika belum ada untuk hari ini (UTC).
+#     Reset otomatis setiap ganti hari.
+#     """
+#     existing = load_json_safe("forecast.json")
+#     if not existing:
+#         return True
+#     today = now_utc[:10]  # "YYYY-MM-DD"
+#     generated = existing.get("generated_date", "")
+#     ticker_data = existing.get("forecasts", {}).get(ticker)
+#     return generated != today or ticker_data is None
+
 def should_generate_forecast(ticker: str, now_utc: str) -> bool:
-    """
-    Hanya generate forecast baru jika belum ada untuk hari ini (UTC).
-    Reset otomatis setiap ganti hari.
-    """
-    existing = load_json_safe("forecast.json")
-    if not existing:
-        return True
-    today = now_utc[:10]  # "YYYY-MM-DD"
-    generated = existing.get("generated_date", "")
-    ticker_data = existing.get("forecasts", {}).get(ticker)
-    return generated != today or ticker_data is None
+    return True
 
 # ═══════════════════════════════════════════════
 #  Main
