@@ -81,7 +81,6 @@ body::after{
 .signal-badge{font-family:var(--mono);font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:.08em;}
 .signal-badge.UP{background:rgba(63,185,80,.2);color:var(--green);border:1px solid rgba(63,185,80,.3);}
 .signal-badge.DOWN{background:rgba(248,81,73,.2);color:var(--red);border:1px solid rgba(248,81,73,.3);}
-.signal-badge.HOLD{background:rgba(210,153,34,.2);color:var(--yellow);border:1px solid rgba(210,153,34,.3);}
 /* prob bar */
 .prob-bar-wrap{display:flex;align-items:center;gap:8px;margin-top:2px;}
 .prob-bar-track{width:84px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden;border:1px solid var(--border);}
@@ -287,7 +286,6 @@ function evalEntry(e){
   if(curr==null)return null;
   if(sig==='UP')return curr>prev;
   if(sig==='DOWN')return curr<prev;
-  if(sig==='HOLD')return Math.abs((curr-prev)/prev)<0.001;
   return null;
 }
 function fmtTsShort(iso){
