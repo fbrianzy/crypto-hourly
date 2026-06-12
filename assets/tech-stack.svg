@@ -1,0 +1,75 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg">
+
+  <rect
+    width="1200"
+    height="420"
+    rx="20"
+    fill="#0d1117"
+    stroke="#1f2937"
+  />
+
+  <text
+    x="600"
+    y="45"
+    text-anchor="middle"
+    font-size="28"
+    font-family="monospace"
+    fill="#e6edf3"
+    font-weight="700"
+  >
+    TECH STACK
+  </text>
+
+  <!-- Row 1 -->
+
+  <g transform="translate(40,80)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#58a6ff" font-size="20" font-family="monospace">Pipeline</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">Python 3.11</text>
+  </g>
+
+  <g transform="translate(330,80)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#e76f00" font-size="20" font-family="monospace">ML Model</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">XGBoost</text>
+  </g>
+
+  <g transform="translate(620,80)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#f55036" font-size="20" font-family="monospace">AI Insight</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">Groq API</text>
+  </g>
+
+  <g transform="translate(910,80)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#bc8cff" font-size="20" font-family="monospace">Data</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">CoinDesk API</text>
+  </g>
+
+  <!-- Row 2 -->
+
+  <g transform="translate(40,240)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#3fb950" font-size="20" font-family="monospace">Automation</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">GitHub Actions</text>
+  </g>
+
+  <g transform="translate(330,240)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#58a6ff" font-size="20" font-family="monospace">Frontend</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">Vanilla JS</text>
+  </g>
+
+  <g transform="translate(620,240)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#d29922" font-size="20" font-family="monospace">Charts</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">Lightweight Charts</text>
+  </g>
+
+  <g transform="translate(910,240)">
+    <rect width="240" height="120" rx="12" fill="#111827"/>
+    <text x="120" y="45" text-anchor="middle" fill="#5865f2" font-size="20" font-family="monospace">Alerts</text>
+    <text x="120" y="80" text-anchor="middle" fill="#e6edf3" font-size="18" font-family="monospace">Discord Webhook</text>
+  </g>
+
+</svg>
