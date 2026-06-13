@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-13T16:25:47.307450+00:00",
+  "updated_at": "2026-06-13T17:54:02.124509+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -560,6 +560,46 @@
       "ts": "2026-06-13T16:25:47.307450+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 13 Jun 2026, 16:25 UTC"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,016.92, signal=DOWN (prob=0.31, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,675.60, signal=DOWN (prob=0.44, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Berikut adalah insight singkat untuk kedua koin berdasarkan output model XGBoost..."
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=146KB"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 13 Jun 2026, 17:54 UTC"
     }
   ],
   "discord_runs": [
@@ -630,6 +670,11 @@
     },
     {
       "ts": "2026-06-13T16:25:47.307450+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-13T17:54:02.124509+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
