@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-14T16:12:51.482079+00:00",
+  "updated_at": "2026-06-14T17:49:31.028575+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -1000,6 +1000,46 @@
       "ts": "2026-06-14T16:12:51.482079+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 14 Jun 2026, 16:12 UTC"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$63,800.64, signal=UP (prob=0.52, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,663.19, signal=DOWN (prob=0.47, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Dalam 1 jam terakhir, model XGBoost menunjukkan sinyal bullish untuk Bitcoin (BT..."
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=137KB"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 14 Jun 2026, 17:49 UTC"
     }
   ],
   "discord_runs": [
@@ -1125,6 +1165,11 @@
     },
     {
       "ts": "2026-06-14T16:12:51.482079+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-14T17:49:31.028575+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
