@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-18T09:55:31.761210+00:00",
+  "updated_at": "2026-06-18T12:57:57.649781+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -2160,6 +2160,46 @@
       "ts": "2026-06-18T09:55:31.761210+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 18 Jun 2026, 09:55 UTC"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,275.77, signal=DOWN (prob=0.33, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,747.09, signal=DOWN (prob=0.41, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Kedua koin, Bitcoin (BTC) dan Ethereum (ETH), menunjukkan sinyal penurunan berda..."
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=125KB"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 18 Jun 2026, 12:57 UTC"
     }
   ],
   "discord_runs": [
@@ -2430,6 +2470,11 @@
     },
     {
       "ts": "2026-06-18T09:55:31.761210+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-18T12:57:57.649781+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
