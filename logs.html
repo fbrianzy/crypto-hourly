@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CryptoHourly | Logs Dashboard</title>
+<title>CryptoHourly — Logs Dashboard</title>
 <meta name="robots" content="noindex,nofollow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -241,7 +241,7 @@ body::after{
 }
 .logout-btn:hover{color:var(--red);border-color:var(--red);background:rgba(248,81,73,.06);}
 
-/* ── hamburger toggle ──────────────────────────────────────────────── */
+/* ── hamburger toggle (animated: ≡ when closed → | | | when open) ───── */
 .hamburger-btn{
   display:flex;align-items:center;justify-content:center;
   width:34px;height:34px;flex-shrink:0;
@@ -249,8 +249,21 @@ body::after{
   cursor:pointer;transition:all .15s;
 }
 .hamburger-btn:hover{border-color:var(--border2);background:var(--bg3);}
-.hamburger-btn svg{width:16px;height:16px;stroke:var(--muted2);transition:stroke .15s;}
-.hamburger-btn:hover svg{stroke:var(--text);}
+.hamburger-icon{
+  width:16px;height:14px;position:relative;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.hamburger-icon span{
+  display:block;height:2px;width:100%;border-radius:1px;
+  background:var(--muted2);
+  transform-origin:center;
+  transition:transform .22s ease, opacity .22s ease, background .15s ease;
+}
+.hamburger-btn:hover .hamburger-icon span{background:var(--text);}
+/* sidebar OPEN → bars rotate into a vertical " | | | " glyph */
+.hamburger-btn.is-open .hamburger-icon span:nth-child(1){transform:translateY(6px) rotate(90deg) scaleX(0.62);}
+.hamburger-btn.is-open .hamburger-icon span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger-btn.is-open .hamburger-icon span:nth-child(3){transform:translateY(-6px) rotate(90deg) scaleX(0.62);}
 .main-topbar{
   display:flex;align-items:center;gap:14px;
   margin-bottom:18px;
@@ -268,12 +281,20 @@ body::after{
 .sidebar-backdrop.show{display:block;}
 
 /* ── main content area ─────────────────────────────────────────────── */
-.main{min-width:0;padding:24px 28px 60px;}
-.wrap{max-width:1320px;}
+.main{
+  min-width:0;padding:24px 28px 60px;
+  display:flex;justify-content:center;
+  transition:padding .22s ease;
+}
+.wrap{max-width:1320px;width:100%;}
+/* when the sidebar is collapsed on desktop, the freed-up space is real
+   (grid column shrinks to 0), so center the content within the wider
+   .main track instead of letting it hug the left edge. */
+.shell.sidebar-collapsed .main{padding-left:40px;padding-right:40px;}
 
 /* ── tab panels (driven by sidebar nav now) ──────────────────────────── */
 .tab-panel{display:none;}
-.tab-panel.active{display:block;}
+.tab-panel.active{display:block;width:100%;}
 .page-title{
   font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text);
   margin-bottom:4px;
@@ -285,7 +306,16 @@ body::after{
 
 /* ── responsive: sidebar becomes a slide-in overlay drawer on small screens ─── */
 @media(max-width:860px){
-  .shell{grid-template-columns:1fr;}
+  /* CRITICAL: the sidebar is position:fixed on mobile, so it must NEVER
+     occupy a real grid track — in either open or closed state. The base
+     .shell.sidebar-collapsed rule above sets "0px 1fr", which is correct
+     for desktop but must be overridden here too, otherwise .main's grid
+     track flips between two different widths depending on collapsed
+     state and the content (charts/table) appears to shrink or vanish. */
+  .shell,
+  .shell.sidebar-collapsed{
+    grid-template-columns:1fr;
+  }
   .sidebar{
     position:fixed;top:0;left:0;bottom:0;
     width:240px;height:100vh;
@@ -304,7 +334,12 @@ body::after{
   .shell.sidebar-collapsed .sidebar{
     padding:22px 16px 18px;border-right-color:var(--border);
   }
-  .main{padding:20px 16px 50px;}
+  /* .main must stay full-width and centered regardless of drawer state —
+     the drawer overlays content, it never reflows it on mobile. */
+  .shell.sidebar-collapsed .main,
+  .main{
+    padding:20px 16px 50px;
+  }
 }
 
 /* ── section ────────────────────────────────────────────────────────── */
@@ -613,12 +648,12 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 
         <!-- top bar with hamburger toggle -->
         <div class="main-topbar">
-          <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Buka/tutup sidebar">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+          <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Buka/tutup sidebar" aria-expanded="true">
+            <span class="hamburger-icon">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
           </button>
           <span class="page-title-inline" id="main-topbar-label">Logs Predict</span>
         </div>
@@ -1010,32 +1045,47 @@ function isMobileViewport() {
   return window.matchMedia('(max-width:860px)').matches;
 }
 
-function updateBackdrop() {
+// keeps the backdrop AND the hamburger icon animation in sync with the
+// current sidebar state — call this any time sidebar-collapsed changes.
+function updateSidebarVisuals() {
   const shell    = document.getElementById('shell');
   const backdrop = document.getElementById('sidebar-backdrop');
-  if (!shell || !backdrop) return;
+  const burger   = document.getElementById('hamburger-btn');
+  if (!shell) return;
+
   const collapsed = shell.classList.contains('sidebar-collapsed');
+  const isOpen    = !collapsed;
+
   // on mobile, the drawer is OPEN when NOT collapsed — show backdrop then.
   // on desktop, there's no overlay, so the backdrop never shows.
-  backdrop.classList.toggle('show', isMobileViewport() && !collapsed);
+  if (backdrop) backdrop.classList.toggle('show', isMobileViewport() && isOpen);
+
+  // hamburger morphs: "≡" (closed) → "| | |" (open)
+  if (burger) {
+    burger.classList.toggle('is-open', isOpen);
+    burger.setAttribute('aria-expanded', String(isOpen));
+  }
 }
+
+// kept as an alias for backward compatibility with earlier calls
+function updateBackdrop() { updateSidebarVisuals(); }
 
 function toggleSidebar() {
   const shell = document.getElementById('shell');
   if (!shell) return;
   shell.classList.toggle('sidebar-collapsed');
-  updateBackdrop();
+  updateSidebarVisuals();
 }
 
 function closeSidebarOnMobile() {
   const shell = document.getElementById('shell');
   if (!shell) return;
   shell.classList.add('sidebar-collapsed');
-  updateBackdrop();
+  updateSidebarVisuals();
 }
 
-// keep backdrop state correct if the viewport crosses the mobile breakpoint
-window.addEventListener('resize', updateBackdrop);
+// keep backdrop/icon state correct if the viewport crosses the mobile breakpoint
+window.addEventListener('resize', updateSidebarVisuals);
 
 
 /* ═══════════════════════════════════════════════
