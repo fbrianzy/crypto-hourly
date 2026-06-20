@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CryptoHourly | Logs Dashboard</title>
+<title>CryptoHourly — Logs Dashboard</title>
 <meta name="robots" content="noindex,nofollow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -147,49 +147,117 @@ body::after{
 @keyframes load{to{width:100%;}}
 .loader-text{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px;}
 
-/* ── app shell ─────────────────────────────────────────────────────── */
+/* ── app shell (sidebar dashboard layout) ─────────────────────────────── */
 #app{display:none;position:relative;z-index:1;}
-.wrap{max-width:1320px;margin:0 auto;padding:0 20px 60px;}
-
-/* ── topbar ─────────────────────────────────────────────────────────── */
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:28px;
+.shell{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  min-height:100vh;
+  max-width:1560px;margin:0 auto;
 }
-.logo{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);letter-spacing:.05em;}
-.logo span{color:var(--blue);}
-.logo-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
-.topbar-right{display:flex;align-items:center;gap:16px;}
-.pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s ease-in-out infinite;}
+
+/* ── sidebar ────────────────────────────────────────────────────────── */
+.sidebar{
+  border-right:1px solid var(--border);
+  background:var(--bg2);
+  display:flex;flex-direction:column;
+  padding:22px 16px 18px;
+  position:sticky;top:0;
+  height:100vh;
+}
+.sidebar-logo{
+  font-family:var(--mono);font-size:14px;font-weight:700;
+  color:var(--text);letter-spacing:.05em;padding:0 8px;margin-bottom:2px;
+}
+.sidebar-logo span{color:var(--blue);}
+.sidebar-sub{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  padding:0 8px;margin-bottom:26px;
+}
+.sidebar-section-label{
+  font-family:var(--mono);font-size:9px;font-weight:700;color:var(--muted);
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:0 8px;margin-bottom:8px;
+}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;margin-bottom:24px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  letter-spacing:.02em;
+  padding:10px 12px;border-radius:8px;
+  background:transparent;border:1px solid transparent;
+  color:var(--muted2);cursor:pointer;text-align:left;
+  transition:all .15s;width:100%;
+}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.nav-item.active{
+  color:var(--blue);background:rgba(88,166,255,.10);
+  border-color:rgba(88,166,255,.25);
+}
+.nav-icon{
+  width:16px;height:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;line-height:1;
+}
+.nav-item.active .nav-dot{background:var(--blue);}
+.nav-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--muted);flex-shrink:0;
+}
+
+.sidebar-status{
+  margin-top:auto;
+  border-top:1px solid var(--border);
+  padding-top:14px;
+}
+.sidebar-status .last-update{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  display:flex;align-items:center;margin-bottom:10px;padding:0 8px;
+}
+.pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s ease-in-out infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(63,185,80,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(63,185,80,0);}}
-.last-update{font-family:var(--mono);font-size:11px;color:var(--muted);}
 .logout-btn{
   font-family:var(--mono);font-size:10px;color:var(--muted);
   background:transparent;border:1px solid var(--border);
-  border-radius:4px;padding:4px 10px;cursor:pointer;
+  border-radius:6px;padding:8px 12px;cursor:pointer;
   transition:all .15s;letter-spacing:.04em;
+  width:100%;text-align:left;
 }
-.logout-btn:hover{color:var(--red);border-color:var(--red);}
+.logout-btn:hover{color:var(--red);border-color:var(--red);background:rgba(248,81,73,.06);}
 
-/* ── tabs ───────────────────────────────────────────────────────────── */
-.tab-bar{
-  display:flex;gap:0;
-  border-bottom:1px solid var(--border);
-  margin-bottom:24px;
-}
-.tab-btn{
-  font-family:var(--mono);font-size:11px;font-weight:700;
-  letter-spacing:.06em;text-transform:uppercase;
-  padding:10px 20px;
-  background:transparent;border:none;
-  color:var(--muted);cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:all .15s;margin-bottom:-1px;
-}
-.tab-btn:hover{color:var(--muted2);}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+/* ── main content area ─────────────────────────────────────────────── */
+.main{min-width:0;padding:24px 28px 60px;}
+.wrap{max-width:1320px;}
+
+/* ── tab panels (driven by sidebar nav now) ──────────────────────────── */
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
+.page-title{
+  font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text);
+  margin-bottom:4px;
+}
+.page-sub{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  margin-bottom:24px;
+}
+
+/* ── responsive: collapse sidebar to top bar on small screens ───────── */
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{
+    position:relative;height:auto;width:100%;
+    flex-direction:row;align-items:center;flex-wrap:wrap;
+    padding:14px 16px;border-right:none;border-bottom:1px solid var(--border);
+  }
+  .sidebar-logo,.sidebar-sub{padding:0;}
+  .sidebar-sub{margin-bottom:0;margin-right:auto;}
+  .sidebar-section-label{display:none;}
+  .sidebar-nav{flex-direction:row;margin-bottom:0;margin-left:auto;}
+  .sidebar-status{margin-top:0;border-top:none;padding-top:0;display:flex;align-items:center;gap:10px;}
+  .sidebar-status .last-update{margin-bottom:0;padding:0;}
+  .logout-btn{width:auto;}
+  .main{padding:20px 16px 50px;}
+}
 
 /* ── section ────────────────────────────────────────────────────────── */
 .section{margin-bottom:24px;}
@@ -209,6 +277,37 @@ body::after{
 .stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
 .stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);}
 .stat-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:3px;}
+
+/* ── per-coin summary row ─────────────────────────────────────────────── */
+.coin-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.coin-summary-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;
+}
+.coin-summary-head{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+}
+.coin-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.coin-dot.btc{background:var(--btc);}
+.coin-dot.eth{background:var(--eth);}
+.coin-summary-name{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.coin-summary-name.btc-c{color:var(--btc);}
+.coin-summary-name.eth-c{color:var(--eth);}
+.coin-summary-ticker{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto;}
+.coin-summary-body{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+}
+.coin-stat{padding:14px 16px;border-right:1px solid var(--border);}
+.coin-stat:last-child{border-right:none;}
+.coin-stat-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;}
+.coin-stat-val{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--text);}
+.coin-stat-sub{font-family:var(--mono);font-size:9px;color:var(--muted2);margin-top:2px;}
+@media(max-width:700px){
+  .coin-summary-grid{grid-template-columns:1fr;}
+  .coin-summary-body{grid-template-columns:repeat(2,1fr);}
+  .coin-stat:nth-child(2){border-right:none;}
+}
 
 /* ── chart toggle (7d / 30d) ──────────────────────────────────────────── */
 .chart-range-toggle{display:flex;gap:6px;margin-bottom:14px;}
@@ -431,239 +530,318 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 
 <!-- ── APP ───────────────────────────────────────────────────────────── -->
 <div id="app">
-  <div class="wrap">
+  <div class="shell">
 
-    <!-- topbar -->
-    <div class="topbar">
-      <div>
-        <div class="logo">CRYPTO_<span>LOGS</span></div>
-        <div class="logo-sub">// internal dashboard — @fbrianzy</div>
-      </div>
-      <div class="topbar-right">
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">CRYPTO_<span>LOGS</span></div>
+      <div class="sidebar-sub">// internal dashboard — @fbrianzy</div>
+
+      <div class="sidebar-section-label">Menu</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="predict" onclick="switchTab('predict',this)">
+          <span class="nav-dot"></span>
+          <span>Logs Predict</span>
+        </button>
+        <button class="nav-item" data-tab="reqdata" onclick="switchTab('reqdata',this)">
+          <span class="nav-dot"></span>
+          <span>Logs Req &amp; Data</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-status">
         <div class="last-update">
           <span class="pulse"></span>
           <span id="last-ts">—</span>
         </div>
         <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
       </div>
-    </div>
+    </aside>
 
-    <!-- tab bar -->
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('predict',this)">Logs Predict</button>
-      <button class="tab-btn" onclick="switchTab('reqdata',this)">Logs Req &amp; Data</button>
-    </div>
+    <!-- main content -->
+    <main class="main">
+      <div class="wrap">
 
-    <!-- ══ TAB: PREDICT ════════════════════════════════════════════════ -->
-    <div class="tab-panel active" id="tab-predict">
+        <!-- ══ TAB: PREDICT ════════════════════════════════════════════════ -->
+        <div class="tab-panel active" id="tab-predict">
+          <div class="page-title">Logs Predict</div>
+          <div class="page-sub">Ringkasan akurasi &amp; riwayat prediksi model XGBoost — BTC &amp; ETH</div>
 
-      <!-- stat row -->
-      <div class="section">
-        <div class="section-title">Ringkasan Akurasi</div>
-        <div class="stat-row">
-          <div class="stat-card">
-            <div class="stat-label">Akurasi 7 Hari</div>
-            <div class="stat-val" id="acc-7d">—</div>
-            <div class="stat-sub" id="acc-7d-sub">— / — prediksi benar</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Akurasi 30 Hari</div>
-            <div class="stat-val" id="acc-30d">—</div>
-            <div class="stat-sub" id="acc-30d-sub">— / — prediksi benar</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Prediksi</div>
-            <div class="stat-val" id="acc-total">—</div>
-            <div class="stat-sub" id="acc-total-sub">dalam 30 hari terakhir</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Pending Verifikasi</div>
-            <div class="stat-val" id="acc-pending">—</div>
-            <div class="stat-sub">menunggu harga berikutnya</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- charts: 3 wajib (utama, BTC, ETH), masing-masing punya toggle 7d/30d -->
-      <div class="section">
-        <div class="section-title">Grafik Akurasi</div>
-        <div class="chart-range-toggle">
-          <button class="range-pill active" data-range="7" onclick="setChartRange(7,this)">7 Hari</button>
-          <button class="range-pill" data-range="30" onclick="setChartRange(30,this)">30 Hari</button>
-        </div>
-        <div class="chart-trio">
-          <div class="chart-box">
-            <div class="chart-box-header">
-              <div class="chart-box-title">Akurasi Utama</div>
-              <div class="chart-box-sub" id="chart-main-sub">% benar per hari · semua koin</div>
+          <!-- stat row -->
+          <div class="section">
+            <div class="section-title">Ringkasan Prediksi</div>
+            <div class="stat-row">
+              <div class="stat-card">
+                <div class="stat-label">Akurasi 7 Hari</div>
+                <div class="stat-val" id="acc-7d">—</div>
+                <div class="stat-sub" id="acc-7d-sub">— / — prediksi benar</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Akurasi 30 Hari</div>
+                <div class="stat-val" id="acc-30d">—</div>
+                <div class="stat-sub" id="acc-30d-sub">— / — prediksi benar</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Total Prediksi</div>
+                <div class="stat-val" id="acc-total">—</div>
+                <div class="stat-sub" id="acc-total-sub">dalam 30 hari terakhir</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Pending Verifikasi</div>
+                <div class="stat-val" id="acc-pending">—</div>
+                <div class="stat-sub">menunggu harga berikutnya</div>
+              </div>
             </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-main"></canvas>
+
+            <!-- per-coin summary -->
+            <div class="coin-summary-grid">
+              <div class="coin-summary-card">
+                <div class="coin-summary-head">
+                  <span class="coin-dot btc"></span>
+                  <span class="coin-summary-name btc-c">Ringkasan Prediksi BTC</span>
+                  <span class="coin-summary-ticker">BTC-USD</span>
+                </div>
+                <div class="coin-summary-body">
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Akurasi 7H</div>
+                    <div class="coin-stat-val" id="btc-acc-7d">—</div>
+                    <div class="coin-stat-sub" id="btc-acc-7d-sub">— / —</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Akurasi 30H</div>
+                    <div class="coin-stat-val" id="btc-acc-30d">—</div>
+                    <div class="coin-stat-sub" id="btc-acc-30d-sub">— / —</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Total 30H</div>
+                    <div class="coin-stat-val" id="btc-total">—</div>
+                    <div class="coin-stat-sub">prediksi</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Pending</div>
+                    <div class="coin-stat-val" id="btc-pending">—</div>
+                    <div class="coin-stat-sub">menunggu</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="coin-summary-card">
+                <div class="coin-summary-head">
+                  <span class="coin-dot eth"></span>
+                  <span class="coin-summary-name eth-c">Ringkasan Prediksi ETH</span>
+                  <span class="coin-summary-ticker">ETH-USD</span>
+                </div>
+                <div class="coin-summary-body">
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Akurasi 7H</div>
+                    <div class="coin-stat-val" id="eth-acc-7d">—</div>
+                    <div class="coin-stat-sub" id="eth-acc-7d-sub">— / —</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Akurasi 30H</div>
+                    <div class="coin-stat-val" id="eth-acc-30d">—</div>
+                    <div class="coin-stat-sub" id="eth-acc-30d-sub">— / —</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Total 30H</div>
+                    <div class="coin-stat-val" id="eth-total">—</div>
+                    <div class="coin-stat-sub">prediksi</div>
+                  </div>
+                  <div class="coin-stat">
+                    <div class="coin-stat-label">Pending</div>
+                    <div class="coin-stat-val" id="eth-pending">—</div>
+                    <div class="coin-stat-sub">menunggu</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="chart-box">
-            <div class="chart-box-header">
-              <div class="chart-box-title btc-c">Akurasi BTC</div>
-              <div class="chart-box-sub" id="chart-btc-sub">% benar per hari · BTC-USD</div>
+
+          <!-- charts: 3 wajib (utama, BTC, ETH), masing-masing punya toggle 7d/30d -->
+          <div class="section">
+            <div class="section-title">Grafik Akurasi</div>
+            <div class="chart-range-toggle">
+              <button class="range-pill active" data-range="7" onclick="setChartRange(7,this)">7 Hari</button>
+              <button class="range-pill" data-range="30" onclick="setChartRange(30,this)">30 Hari</button>
             </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-btc"></canvas>
+            <div class="chart-trio">
+              <div class="chart-box">
+                <div class="chart-box-header">
+                  <div class="chart-box-title">Akurasi Utama</div>
+                  <div class="chart-box-sub" id="chart-main-sub">% benar per hari · semua koin</div>
+                </div>
+                <div class="chart-canvas-wrap">
+                  <canvas id="chart-main"></canvas>
+                </div>
+              </div>
+              <div class="chart-box">
+                <div class="chart-box-header">
+                  <div class="chart-box-title btc-c">Akurasi BTC</div>
+                  <div class="chart-box-sub" id="chart-btc-sub">% benar per hari · BTC-USD</div>
+                </div>
+                <div class="chart-canvas-wrap">
+                  <canvas id="chart-btc"></canvas>
+                </div>
+              </div>
+              <div class="chart-box">
+                <div class="chart-box-header">
+                  <div class="chart-box-title eth-c">Akurasi ETH</div>
+                  <div class="chart-box-sub" id="chart-eth-sub">% benar per hari · ETH-USD</div>
+                </div>
+                <div class="chart-canvas-wrap">
+                  <canvas id="chart-eth"></canvas>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="chart-box">
-            <div class="chart-box-header">
-              <div class="chart-box-title eth-c">Akurasi ETH</div>
-              <div class="chart-box-sub" id="chart-eth-sub">% benar per hari · ETH-USD</div>
+
+          <!-- filters -->
+          <div class="section">
+            <div class="section-title">Rekapan Prediksi</div>
+
+            <div class="filter-bar">
+              <div class="filter-field">
+                <label for="f-date-from">Dari Tanggal</label>
+                <input type="date" id="f-date-from" class="filter-input filter-date" onchange="applyFilters()"/>
+              </div>
+              <div class="filter-field">
+                <label for="f-date-to">Sampai Tanggal</label>
+                <input type="date" id="f-date-to" class="filter-input filter-date" onchange="applyFilters()"/>
+              </div>
+              <div class="filter-field">
+                <label for="f-coin">Koin</label>
+                <select id="f-coin" class="filter-select" onchange="applyFilters()">
+                  <option value="all">Semua Koin</option>
+                  <option value="BTC-USD">BTC</option>
+                  <option value="ETH-USD">ETH</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="f-signal">Prediksi</label>
+                <select id="f-signal" class="filter-select" onchange="applyFilters()">
+                  <option value="all">Semua</option>
+                  <option value="UP">UP</option>
+                  <option value="DOWN">DOWN</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="f-result">Hasil</label>
+                <select id="f-result" class="filter-select" onchange="applyFilters()">
+                  <option value="all">Semua</option>
+                  <option value="true">TRUE</option>
+                  <option value="false">FALSE</option>
+                  <option value="pending">PENDING</option>
+                </select>
+              </div>
+              <button class="filter-reset-btn" onclick="resetFilters()">Reset</button>
+              <div class="filter-count" id="filter-count">— entri</div>
             </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="chart-eth"></canvas>
+
+            <div class="table-wrap">
+              <div class="table-header-bar">
+                <div class="table-title">Riwayat Prediksi</div>
+                <div class="table-meta" id="table-meta">Memuat...</div>
+              </div>
+              <div class="table-scroll" id="table-scroll-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Koin</th>
+                      <th>Harga Sebelumnya</th>
+                      <th>Prediksi</th>
+                      <th>Harga Saat Ini</th>
+                      <th>Delta</th>
+                      <th>Hasil</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pred-tbody">
+                    <tr><td colspan="7"><div class="empty-state"><div>⏳</div>Memuat data...</div></td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- filters -->
-      <div class="section">
-        <div class="section-title">Rekapan Prediksi</div>
+        </div><!-- /tab-predict -->
 
-        <div class="filter-bar">
-          <div class="filter-field">
-            <label for="f-date-from">Dari Tanggal</label>
-            <input type="date" id="f-date-from" class="filter-input filter-date" onchange="applyFilters()"/>
-          </div>
-          <div class="filter-field">
-            <label for="f-date-to">Sampai Tanggal</label>
-            <input type="date" id="f-date-to" class="filter-input filter-date" onchange="applyFilters()"/>
-          </div>
-          <div class="filter-field">
-            <label for="f-coin">Koin</label>
-            <select id="f-coin" class="filter-select" onchange="applyFilters()">
-              <option value="all">Semua Koin</option>
-              <option value="BTC-USD">BTC</option>
-              <option value="ETH-USD">ETH</option>
-            </select>
-          </div>
-          <div class="filter-field">
-            <label for="f-signal">Prediksi</label>
-            <select id="f-signal" class="filter-select" onchange="applyFilters()">
-              <option value="all">Semua</option>
-              <option value="UP">UP</option>
-              <option value="DOWN">DOWN</option>
-            </select>
-          </div>
-          <div class="filter-field">
-            <label for="f-result">Hasil</label>
-            <select id="f-result" class="filter-select" onchange="applyFilters()">
-              <option value="all">Semua</option>
-              <option value="true">TRUE</option>
-              <option value="false">FALSE</option>
-              <option value="pending">PENDING</option>
-            </select>
-          </div>
-          <button class="filter-reset-btn" onclick="resetFilters()">Reset</button>
-          <div class="filter-count" id="filter-count">— entri</div>
-        </div>
+        <!-- ══ TAB: REQ & DATA ════════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-reqdata">
+          <div class="page-title">Logs Req &amp; Data</div>
+          <div class="page-sub">Log mentah dari GitHub Actions, pengiriman Discord, dan evaluasi prediksi</div>
 
-        <div class="table-wrap">
-          <div class="table-header-bar">
-            <div class="table-title">Riwayat Prediksi</div>
-            <div class="table-meta" id="table-meta">Memuat...</div>
-          </div>
-          <div class="table-scroll" id="table-scroll-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Koin</th>
-                  <th>Harga Sebelumnya</th>
-                  <th>Prediksi</th>
-                  <th>Harga Saat Ini</th>
-                  <th>Delta</th>
-                  <th>Hasil</th>
-                </tr>
-              </thead>
-              <tbody id="pred-tbody">
-                <tr><td colspan="7"><div class="empty-state"><div>⏳</div>Memuat data...</div></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /tab-predict -->
-
-    <!-- ══ TAB: REQ & DATA ════════════════════════════════════════════ -->
-    <div class="tab-panel" id="tab-reqdata">
-
-      <!-- GitHub Actions Logs -->
-      <div class="section">
-        <div class="section-title">GitHub Actions — Run Logs</div>
-        <div class="terminal-card" id="term-gh">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span class="dot-red"></span>
-              <span class="dot-yellow"></span>
-              <span class="dot-green"></span>
+          <!-- GitHub Actions Logs -->
+          <div class="section">
+            <div class="section-title">GitHub Actions — Run Logs</div>
+            <div class="terminal-card" id="term-gh">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot-red"></span>
+                  <span class="dot-yellow"></span>
+                  <span class="dot-green"></span>
+                </div>
+                <div class="terminal-title">hourly.yml — fetch_predict.py</div>
+                <div class="terminal-status" id="gh-status">—</div>
+              </div>
+              <div class="terminal-body" id="gh-body">
+                <div class="log-empty">Memuat logs...</div>
+              </div>
             </div>
-            <div class="terminal-title">hourly.yml — fetch_predict.py</div>
-            <div class="terminal-status" id="gh-status">—</div>
           </div>
-          <div class="terminal-body" id="gh-body">
-            <div class="log-empty">Memuat logs...</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Discord Bot Logs -->
-      <div class="section">
-        <div class="section-title">Discord Bot — Webhook Logs</div>
-        <div class="terminal-card" id="term-discord">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span class="dot-red"></span>
-              <span class="dot-yellow"></span>
-              <span class="dot-green"></span>
+          <!-- Discord Bot Logs -->
+          <div class="section">
+            <div class="section-title">Discord Bot — Webhook Logs</div>
+            <div class="terminal-card" id="term-discord">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot-red"></span>
+                  <span class="dot-yellow"></span>
+                  <span class="dot-green"></span>
+                </div>
+                <div class="terminal-title">discord_webhook — image delivery</div>
+                <div class="terminal-status" id="dc-status">—</div>
+              </div>
+              <div class="terminal-body" id="dc-body">
+                <div class="log-empty">Memuat logs...</div>
+              </div>
             </div>
-            <div class="terminal-title">discord_webhook — image delivery</div>
-            <div class="terminal-status" id="dc-status">—</div>
           </div>
-          <div class="terminal-body" id="dc-body">
-            <div class="log-empty">Memuat logs...</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Prediction Eval Logs -->
-      <div class="section">
-        <div class="section-title">Evaluasi Prediksi — Terminal</div>
-        <div class="terminal-card">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span class="dot-red"></span>
-              <span class="dot-yellow"></span>
-              <span class="dot-green"></span>
+          <!-- Prediction Eval Logs -->
+          <div class="section">
+            <div class="section-title">Evaluasi Prediksi — Terminal</div>
+            <div class="terminal-card">
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot-red"></span>
+                  <span class="dot-yellow"></span>
+                  <span class="dot-green"></span>
+                </div>
+                <div class="terminal-title">prediction_eval — 30d rolling</div>
+                <div class="terminal-status ok" id="pred-eval-status">LIVE</div>
+              </div>
+              <div class="terminal-body" id="pred-eval-body">
+                <div class="log-empty">Memuat logs...</div>
+              </div>
             </div>
-            <div class="terminal-title">prediction_eval — 30d rolling</div>
-            <div class="terminal-status ok" id="pred-eval-status">LIVE</div>
           </div>
-          <div class="terminal-body" id="pred-eval-body">
-            <div class="log-empty">Memuat logs...</div>
+
+        </div><!-- /tab-reqdata -->
+
+        <!-- footer -->
+        <footer class="footer">
+          <div class="footer-left">Crypto Logs · @fbrianzy · Auto-update via GitHub Actions</div>
+          <div class="footer-links">
+            <a href="./index.html">← Dashboard</a>
+            <a href="https://github.com/fbrianzy/crypto-hourly/" target="_blank">GitHub</a>
           </div>
-        </div>
-      </div>
+        </footer>
 
-    </div><!-- /tab-reqdata -->
+      </div><!-- /wrap -->
+    </main><!-- /main -->
 
-    <!-- footer -->
-    <footer class="footer">
-      <div class="footer-left">Crypto Logs · @fbrianzy · Auto-update via GitHub Actions</div>
-      <div class="footer-links">
-        <a href="./index.html">← Dashboard</a>
-        <a href="https://github.com/fbrianzy/crypto-hourly/" target="_blank">GitHub</a>
-      </div>
-    </footer>
-
-  </div><!-- /wrap -->
+  </div><!-- /shell -->
 </div><!-- /app -->
 
 <!-- Chart.js -->
@@ -750,7 +928,7 @@ document.addEventListener('keydown', e => {
 ═══════════════════════════════════════════════ */
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
 }
@@ -851,6 +1029,24 @@ function renderStats(entries) {
   document.getElementById('acc-pending').textContent = pending;
 }
 
+function renderCoinStats(entries) {
+  const pct = (c, t) => t > 0 ? (c / t * 100).toFixed(1) + '%' : '—';
+
+  const coinMap = { 'BTC-USD': 'btc', 'ETH-USD': 'eth' };
+
+  Object.entries(coinMap).forEach(([ticker, prefix]) => {
+    const coinEntries = entries.filter(e => e.ticker === ticker);
+    const { s7, s30, pending, total30 } = computeStats(coinEntries);
+
+    document.getElementById(`${prefix}-acc-7d`).textContent     = pct(s7.correct, s7.evaluated);
+    document.getElementById(`${prefix}-acc-7d-sub`).textContent = `${s7.correct} / ${s7.evaluated}`;
+    document.getElementById(`${prefix}-acc-30d`).textContent     = pct(s30.correct, s30.evaluated);
+    document.getElementById(`${prefix}-acc-30d-sub`).textContent = `${s30.correct} / ${s30.evaluated}`;
+    document.getElementById(`${prefix}-total`).textContent   = total30;
+    document.getElementById(`${prefix}-pending`).textContent = pending;
+  });
+}
+
 
 /* ═══════════════════════════════════════════════
    FILTERS + TABLE  (filter pengganti pill BTC/ETH)
@@ -896,12 +1092,18 @@ function applyFilters() {
   if (wrap) wrap.scrollTop = 0;
 }
 
-function resetFilters() {
+function resetFilterInputs() {
+  // sets all filter controls back to their "show everything" state
+  // used on boot so the first paint always shows the full dataset
   document.getElementById('f-date-from').value = '';
   document.getElementById('f-date-to').value   = '';
   document.getElementById('f-coin').value      = 'all';
   document.getElementById('f-signal').value    = 'all';
   document.getElementById('f-result').value    = 'all';
+}
+
+function resetFilters() {
+  resetFilterInputs();
   applyFilters();
 }
 
@@ -1184,9 +1386,11 @@ async function bootApp() {
       document.getElementById('last-ts').textContent = 'Updated ' + tsAbs(lastTs);
     }
 
-    // render
+    // render — filters explicitly reset so first open shows ALL data, no pre-set filter
     allEntries = predLog;
+    resetFilterInputs();
     renderStats(predLog);
+    renderCoinStats(predLog);
     renderCharts(predLog, chartRange);
     applyFilters();
     renderTerminal('gh-body', 'gh-status', runLog.gh_runs || [], 'gh');
