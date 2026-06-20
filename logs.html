@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CryptoHourly — Logs Dashboard</title>
+<title>CryptoHourly | Logs Dashboard</title>
 <meta name="robots" content="noindex,nofollow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -52,6 +52,36 @@ body::after{
   content:'';position:fixed;inset:0;
   background-image:linear-gradient(rgba(88,166,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,0.03) 1px,transparent 1px);
   background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+/* ── transparent / auto-hide scrollbars (global) ─────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*::-webkit-scrollbar{
+  width:6px;height:6px;
+}
+*::-webkit-scrollbar-track{
+  background:transparent;
+}
+*::-webkit-scrollbar-thumb{
+  background:transparent;
+  border-radius:6px;
+  transition:background .2s ease;
+}
+*::-webkit-scrollbar-corner{
+  background:transparent;
+}
+/* reveal thumb only while the element is actively scrolled/hovered */
+*:hover::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.14);
+}
+*:hover{
+  scrollbar-color: rgba(255,255,255,0.14) transparent;
+}
+*::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,255,255,0.28);
 }
 
 /* ── auth overlay ─────────────────────────────────────────────────── */
@@ -180,8 +210,19 @@ body::after{
 .stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);}
 .stat-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:3px;}
 
+/* ── chart toggle (7d / 30d) ──────────────────────────────────────────── */
+.chart-range-toggle{display:flex;gap:6px;margin-bottom:14px;}
+.range-pill{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:5px 16px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--border);background:transparent;
+  color:var(--muted);transition:all .15s;
+}
+.range-pill:hover{color:var(--muted2);}
+.range-pill.active{background:rgba(88,166,255,.15);color:var(--blue);border-color:var(--blue);}
+
 /* ── chart card ─────────────────────────────────────────────────────── */
-.chart-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.chart-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
 .chart-box{
   background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
   overflow:hidden;
@@ -191,9 +232,43 @@ body::after{
   padding:12px 18px 10px;border-bottom:1px solid var(--border);
 }
 .chart-box-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.chart-box-title.btc-c{color:var(--btc);}
+.chart-box-title.eth-c{color:var(--eth);}
 .chart-box-sub{font-family:var(--mono);font-size:10px;color:var(--muted);}
-.chart-canvas-wrap{padding:16px;height:220px;position:relative;}
+.chart-canvas-wrap{padding:16px;height:200px;position:relative;}
 canvas.acc-chart{width:100%!important;height:100%!important;}
+
+/* ── filter bar ─────────────────────────────────────────────────────── */
+.filter-bar{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  padding:14px 16px;margin-bottom:14px;
+  display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;
+}
+.filter-field{display:flex;flex-direction:column;gap:6px;}
+.filter-field label{
+  font-family:var(--mono);font-size:9px;color:var(--muted);
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.filter-input,.filter-select{
+  background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:7px 10px;font-family:var(--mono);font-size:11px;color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.filter-input:focus,.filter-select:focus{border-color:var(--blue);}
+.filter-select{cursor:pointer;min-width:120px;}
+.filter-date{min-width:130px;}
+.filter-reset-btn{
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--muted);background:transparent;
+  border:1px solid var(--border);border-radius:6px;
+  padding:7px 14px;cursor:pointer;transition:all .15s;
+  letter-spacing:.04em;height:31px;
+}
+.filter-reset-btn:hover{color:var(--red);border-color:var(--red);}
+.filter-count{
+  font-family:var(--mono);font-size:10px;color:var(--muted2);
+  margin-left:auto;align-self:center;
+}
 
 /* ── table ──────────────────────────────────────────────────────────── */
 .table-wrap{
@@ -206,8 +281,10 @@ canvas.acc-chart{width:100%!important;height:100%!important;}
 }
 .table-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
 .table-meta{font-family:var(--mono);font-size:10px;color:var(--muted);}
-.table-scroll{overflow-x:auto;}
+/* table body capped to ~10 rows, rest scrolls with transparent scrollbar */
+.table-scroll{overflow-x:auto;overflow-y:auto;max-height:420px;}
 table{width:100%;border-collapse:collapse;min-width:700px;}
+thead{position:sticky;top:0;z-index:2;}
 thead th{
   font-family:var(--mono);font-size:10px;font-weight:700;
   color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
@@ -288,19 +365,6 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 .log-tag.false-r{color:var(--red);}
 .log-empty{font-family:var(--mono);font-size:12px;color:var(--muted);font-style:italic;padding:20px 0;}
 
-/* ── coin tab filter ─────────────────────────────────────────────────── */
-.coin-filter{display:flex;gap:6px;margin-bottom:14px;}
-.coin-pill{
-  font-family:var(--mono);font-size:11px;font-weight:700;
-  padding:4px 14px;border-radius:20px;cursor:pointer;
-  border:1px solid var(--border);background:transparent;
-  color:var(--muted);transition:all .15s;
-}
-.coin-pill:hover{color:var(--muted2);}
-.coin-pill.all.active{background:rgba(88,166,255,.15);color:var(--blue);border-color:var(--blue);}
-.coin-pill.btc.active{background:rgba(247,147,26,.15);color:var(--btc);border-color:var(--btc);}
-.coin-pill.eth.active{background:rgba(98,126,234,.15);color:var(--eth);border-color:var(--eth);}
-
 /* ── empty state ─────────────────────────────────────────────────────── */
 .empty-state{
   text-align:center;padding:40px;
@@ -324,9 +388,13 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 .footer-links a:hover{color:var(--blue);}
 
 /* ── responsive ──────────────────────────────────────────────────────── */
+@media(max-width:1100px){
+  .chart-trio{grid-template-columns:1fr;}
+}
 @media(max-width:900px){
-  .chart-pair{grid-template-columns:1fr;}
   .stat-row{grid-template-columns:repeat(2,1fr);}
+  .filter-bar{flex-direction:column;align-items:stretch;}
+  .filter-count{margin-left:0;}
 }
 @media(max-width:560px){
   .stat-row{grid-template-columns:1fr 1fr;}
@@ -416,45 +484,92 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
         </div>
       </div>
 
-      <!-- charts -->
+      <!-- charts: 3 wajib (utama, BTC, ETH), masing-masing punya toggle 7d/30d -->
       <div class="section">
         <div class="section-title">Grafik Akurasi</div>
-        <div class="chart-pair">
+        <div class="chart-range-toggle">
+          <button class="range-pill active" data-range="7" onclick="setChartRange(7,this)">7 Hari</button>
+          <button class="range-pill" data-range="30" onclick="setChartRange(30,this)">30 Hari</button>
+        </div>
+        <div class="chart-trio">
           <div class="chart-box">
             <div class="chart-box-header">
-              <div class="chart-box-title">Akurasi Harian — 7 Hari Terakhir</div>
-              <div class="chart-box-sub">% benar per hari</div>
+              <div class="chart-box-title">Akurasi Utama</div>
+              <div class="chart-box-sub" id="chart-main-sub">% benar per hari · semua koin</div>
             </div>
             <div class="chart-canvas-wrap">
-              <canvas id="chart-7d"></canvas>
+              <canvas id="chart-main"></canvas>
             </div>
           </div>
           <div class="chart-box">
             <div class="chart-box-header">
-              <div class="chart-box-title">Akurasi Harian — 30 Hari Terakhir</div>
-              <div class="chart-box-sub">% benar per hari</div>
+              <div class="chart-box-title btc-c">Akurasi BTC</div>
+              <div class="chart-box-sub" id="chart-btc-sub">% benar per hari · BTC-USD</div>
             </div>
             <div class="chart-canvas-wrap">
-              <canvas id="chart-30d"></canvas>
+              <canvas id="chart-btc"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-header">
+              <div class="chart-box-title eth-c">Akurasi ETH</div>
+              <div class="chart-box-sub" id="chart-eth-sub">% benar per hari · ETH-USD</div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="chart-eth"></canvas>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- table -->
+      <!-- filters -->
       <div class="section">
-        <div class="section-title">Rekapan Prediksi — 30 Hari Terakhir</div>
-        <div class="coin-filter">
-          <button class="coin-pill all active" onclick="filterTable('all',this)">Semua</button>
-          <button class="coin-pill btc" onclick="filterTable('BTC-USD',this)">BTC</button>
-          <button class="coin-pill eth" onclick="filterTable('ETH-USD',this)">ETH</button>
+        <div class="section-title">Rekapan Prediksi</div>
+
+        <div class="filter-bar">
+          <div class="filter-field">
+            <label for="f-date-from">Dari Tanggal</label>
+            <input type="date" id="f-date-from" class="filter-input filter-date" onchange="applyFilters()"/>
+          </div>
+          <div class="filter-field">
+            <label for="f-date-to">Sampai Tanggal</label>
+            <input type="date" id="f-date-to" class="filter-input filter-date" onchange="applyFilters()"/>
+          </div>
+          <div class="filter-field">
+            <label for="f-coin">Koin</label>
+            <select id="f-coin" class="filter-select" onchange="applyFilters()">
+              <option value="all">Semua Koin</option>
+              <option value="BTC-USD">BTC</option>
+              <option value="ETH-USD">ETH</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="f-signal">Prediksi</label>
+            <select id="f-signal" class="filter-select" onchange="applyFilters()">
+              <option value="all">Semua</option>
+              <option value="UP">UP</option>
+              <option value="DOWN">DOWN</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="f-result">Hasil</label>
+            <select id="f-result" class="filter-select" onchange="applyFilters()">
+              <option value="all">Semua</option>
+              <option value="true">TRUE</option>
+              <option value="false">FALSE</option>
+              <option value="pending">PENDING</option>
+            </select>
+          </div>
+          <button class="filter-reset-btn" onclick="resetFilters()">Reset</button>
+          <div class="filter-count" id="filter-count">— entri</div>
         </div>
+
         <div class="table-wrap">
           <div class="table-header-bar">
             <div class="table-title">Riwayat Prediksi</div>
             <div class="table-meta" id="table-meta">Memuat...</div>
           </div>
-          <div class="table-scroll">
+          <div class="table-scroll" id="table-scroll-wrap">
             <table>
               <thead>
                 <tr>
@@ -671,12 +786,9 @@ function tsAbs(iso) {
   } catch { return iso; }
 }
 
-function dateLabel(iso) {
-  if (!iso) return '—';
-  try {
-    const d = new Date(iso);
-    return `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
-  } catch { return iso; }
+function dateKeyUTC(iso) {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
 }
 
 /* Evaluate a single prediction entry.
@@ -689,7 +801,6 @@ function evalPred(entry) {
   const prev = entry.price_prev;
   const curr = entry.price_next;
   if (curr == null) return null; // pending
-  const delta = (curr - prev) / prev;
   if (sig === 'UP')   return curr > prev;
   if (sig === 'DOWN') return curr < prev;
   return null;
@@ -697,11 +808,15 @@ function evalPred(entry) {
 
 
 /* ═══════════════════════════════════════════════
-   STATS & TABLE
+   STATE
 ═══════════════════════════════════════════════ */
-let allEntries = [];
-let currentFilter = 'all';
+let allEntries   = [];
+let chartRange    = 7; // 7 or 30
 
+
+/* ═══════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════ */
 function computeStats(entries) {
   const now = Date.now();
   const d7  = now - 7  * 86400000;
@@ -736,21 +851,74 @@ function renderStats(entries) {
   document.getElementById('acc-pending').textContent = pending;
 }
 
-function renderTable(entries, filter) {
-  const tbody = document.getElementById('pred-tbody');
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.ticker === filter);
-  const meta = document.getElementById('table-meta');
 
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div>📭</div>Belum ada data prediksi.</div></td></tr>`;
+/* ═══════════════════════════════════════════════
+   FILTERS + TABLE  (filter pengganti pill BTC/ETH)
+═══════════════════════════════════════════════ */
+function getFilteredEntries() {
+  const dateFrom = document.getElementById('f-date-from').value;
+  const dateTo   = document.getElementById('f-date-to').value;
+  const coin     = document.getElementById('f-coin').value;
+  const signal   = document.getElementById('f-signal').value;
+  const result   = document.getElementById('f-result').value;
+
+  return allEntries.filter(e => {
+    // date range filter (UTC date comparison)
+    if (dateFrom) {
+      const key = dateKeyUTC(e.ts);
+      if (key < dateFrom) return false;
+    }
+    if (dateTo) {
+      const key = dateKeyUTC(e.ts);
+      if (key > dateTo) return false;
+    }
+    // coin filter
+    if (coin !== 'all' && e.ticker !== coin) return false;
+    // signal (UP/DOWN) filter
+    if (signal !== 'all' && e.signal !== signal) return false;
+    // result (true/false/pending) filter
+    if (result !== 'all') {
+      const r = evalPred(e);
+      if (result === 'true'    && r !== true)  return false;
+      if (result === 'false'   && r !== false) return false;
+      if (result === 'pending' && r !== null)  return false;
+    }
+    return true;
+  });
+}
+
+function applyFilters() {
+  const filtered = getFilteredEntries();
+  renderTable(filtered);
+  document.getElementById('filter-count').textContent = `${filtered.length} entri cocok`;
+  // reset scroll to top on new filter
+  const wrap = document.getElementById('table-scroll-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+
+function resetFilters() {
+  document.getElementById('f-date-from').value = '';
+  document.getElementById('f-date-to').value   = '';
+  document.getElementById('f-coin').value      = 'all';
+  document.getElementById('f-signal').value    = 'all';
+  document.getElementById('f-result').value    = 'all';
+  applyFilters();
+}
+
+function renderTable(entries) {
+  const tbody = document.getElementById('pred-tbody');
+  const meta  = document.getElementById('table-meta');
+
+  if (!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div>📭</div>Tidak ada data yang cocok dengan filter.</div></td></tr>`;
     meta.textContent = '0 entri';
     return;
   }
 
-  meta.textContent = `${filtered.length} entri`;
+  meta.textContent = `${entries.length} entri · 10 baris terlihat, scroll untuk lainnya`;
 
   // sort descending by ts
-  const sorted = [...filtered].sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  const sorted = [...entries].sort((a, b) => new Date(b.ts) - new Date(a.ts));
 
   tbody.innerHTML = sorted.map(e => {
     const result = evalPred(e);
@@ -774,20 +942,26 @@ function renderTable(entries, filter) {
       <td>${badge}</td>
     </tr>`;
   }).join('');
-}
 
-function filterTable(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.coin-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  renderTable(allEntries, currentFilter);
+  // cap visible rows to 10 — measure first 10 rows and clamp container height
+  requestAnimationFrame(() => {
+    const wrap = document.getElementById('table-scroll-wrap');
+    const rows = tbody.querySelectorAll('tr');
+    const thead = wrap.querySelector('thead');
+    if (rows.length > 0) {
+      const headH   = thead ? thead.getBoundingClientRect().height : 0;
+      const rowH    = rows[0].getBoundingClientRect().height;
+      const visible = Math.min(10, rows.length);
+      wrap.style.maxHeight = (headH + rowH * visible + 2) + 'px';
+    }
+  });
 }
 
 
 /* ═══════════════════════════════════════════════
-   CHARTS
+   CHARTS — 3 wajib: Utama, BTC, ETH (masing-masing 7d & 30d via toggle)
 ═══════════════════════════════════════════════ */
-let chart7, chart30;
+let chartMain, chartBtc, chartEth;
 
 function buildDailyData(entries, days) {
   const now  = Date.now();
@@ -797,8 +971,7 @@ function buildDailyData(entries, days) {
   // group by UTC date
   const map = {};
   filtered.forEach(e => {
-    const d = new Date(e.ts);
-    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+    const key = dateKeyUTC(e.ts);
     if (!map[key]) map[key] = { correct: 0, total: 0 };
     map[key].total++;
     if (evalPred(e)) map[key].correct++;
@@ -845,43 +1018,47 @@ const CHART_DEFAULTS = {
   },
 };
 
-function renderCharts(entries) {
-  const d7  = buildDailyData(entries, 7);
-  const d30 = buildDailyData(entries, 30);
+function barColorsFor(data) {
+  return data.map(v => v >= 60 ? 'rgba(63,185,80,0.6)' : v >= 40 ? 'rgba(88,166,255,0.6)' : 'rgba(248,81,73,0.6)');
+}
 
-  const barColor  = 'rgba(88,166,255,0.7)';
-  const barHover  = 'rgba(88,166,255,1)';
+function renderCharts(entries, days) {
+  const all = buildDailyData(entries, days);
+  const btc = buildDailyData(entries.filter(e => e.ticker === 'BTC-USD'), days);
+  const eth = buildDailyData(entries.filter(e => e.ticker === 'ETH-USD'), days);
 
-  if (chart7)  chart7.destroy();
-  if (chart30) chart30.destroy();
+  document.getElementById('chart-main-sub').textContent = `% benar per hari · semua koin · ${days} hari`;
+  document.getElementById('chart-btc-sub').textContent  = `% benar per hari · BTC-USD · ${days} hari`;
+  document.getElementById('chart-eth-sub').textContent  = `% benar per hari · ETH-USD · ${days} hari`;
 
-  chart7 = new Chart(document.getElementById('chart-7d'), {
+  if (chartMain) chartMain.destroy();
+  if (chartBtc)  chartBtc.destroy();
+  if (chartEth)  chartEth.destroy();
+
+  chartMain = new Chart(document.getElementById('chart-main'), {
     type: 'bar',
-    data: {
-      labels: d7.labels,
-      datasets: [{
-        data: d7.data,
-        backgroundColor: d7.data.map(v => v >= 60 ? 'rgba(63,185,80,0.6)' : v >= 40 ? 'rgba(88,166,255,0.6)' : 'rgba(248,81,73,0.6)'),
-        borderRadius: 4,
-        borderSkipped: false,
-      }],
-    },
+    data: { labels: all.labels, datasets: [{ data: all.data, backgroundColor: barColorsFor(all.data), borderRadius: 4, borderSkipped: false }] },
     options: CHART_DEFAULTS,
   });
 
-  chart30 = new Chart(document.getElementById('chart-30d'), {
+  chartBtc = new Chart(document.getElementById('chart-btc'), {
     type: 'bar',
-    data: {
-      labels: d30.labels,
-      datasets: [{
-        data: d30.data,
-        backgroundColor: d30.data.map(v => v >= 60 ? 'rgba(63,185,80,0.6)' : v >= 40 ? 'rgba(88,166,255,0.6)' : 'rgba(248,81,73,0.6)'),
-        borderRadius: 4,
-        borderSkipped: false,
-      }],
-    },
+    data: { labels: btc.labels, datasets: [{ data: btc.data, backgroundColor: 'rgba(247,147,26,0.6)', borderRadius: 4, borderSkipped: false }] },
     options: CHART_DEFAULTS,
   });
+
+  chartEth = new Chart(document.getElementById('chart-eth'), {
+    type: 'bar',
+    data: { labels: eth.labels, datasets: [{ data: eth.data, backgroundColor: 'rgba(98,126,234,0.6)', borderRadius: 4, borderSkipped: false }] },
+    options: CHART_DEFAULTS,
+  });
+}
+
+function setChartRange(days, btn) {
+  chartRange = days;
+  document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderCharts(allEntries, chartRange);
 }
 
 
@@ -1010,8 +1187,8 @@ async function bootApp() {
     // render
     allEntries = predLog;
     renderStats(predLog);
-    renderCharts(predLog);
-    renderTable(predLog, currentFilter);
+    renderCharts(predLog, chartRange);
+    applyFilters();
     renderTerminal('gh-body', 'gh-status', runLog.gh_runs || [], 'gh');
     renderTerminal('dc-body', 'dc-status', runLog.discord_runs || [], 'discord');
     renderPredEval(predLog);
