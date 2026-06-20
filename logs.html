@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CryptoHourly — Logs Dashboard</title>
+<title>CryptoHourly | Logs Dashboard</title>
 <meta name="robots" content="noindex,nofollow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -154,6 +154,10 @@ body::after{
   grid-template-columns:240px 1fr;
   min-height:100vh;
   max-width:1560px;margin:0 auto;
+  transition:grid-template-columns .22s ease;
+}
+.shell.sidebar-collapsed{
+  grid-template-columns:0px 1fr;
 }
 
 /* ── sidebar ────────────────────────────────────────────────────────── */
@@ -164,6 +168,18 @@ body::after{
   padding:22px 16px 18px;
   position:sticky;top:0;
   height:100vh;
+  overflow:hidden;
+  white-space:nowrap;
+  transition:padding .22s ease;
+}
+.shell.sidebar-collapsed .sidebar{
+  padding-left:0;padding-right:0;
+  border-right-color:transparent;
+}
+.shell.sidebar-collapsed .sidebar > *{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .12s ease;
 }
 .sidebar-logo{
   font-family:var(--mono);font-size:14px;font-weight:700;
@@ -225,6 +241,32 @@ body::after{
 }
 .logout-btn:hover{color:var(--red);border-color:var(--red);background:rgba(248,81,73,.06);}
 
+/* ── hamburger toggle ──────────────────────────────────────────────── */
+.hamburger-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;flex-shrink:0;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:all .15s;
+}
+.hamburger-btn:hover{border-color:var(--border2);background:var(--bg3);}
+.hamburger-btn svg{width:16px;height:16px;stroke:var(--muted2);transition:stroke .15s;}
+.hamburger-btn:hover svg{stroke:var(--text);}
+.main-topbar{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:18px;
+}
+.main-topbar .page-title-inline{
+  font-family:var(--mono);font-size:13px;font-weight:700;color:var(--muted2);
+}
+
+/* mobile drawer backdrop (only relevant under 860px) */
+.sidebar-backdrop{
+  display:none;
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  z-index:899;
+}
+.sidebar-backdrop.show{display:block;}
+
 /* ── main content area ─────────────────────────────────────────────── */
 .main{min-width:0;padding:24px 28px 60px;}
 .wrap{max-width:1320px;}
@@ -241,21 +283,27 @@ body::after{
   margin-bottom:24px;
 }
 
-/* ── responsive: collapse sidebar to top bar on small screens ───────── */
+/* ── responsive: sidebar becomes a slide-in overlay drawer on small screens ─── */
 @media(max-width:860px){
   .shell{grid-template-columns:1fr;}
   .sidebar{
-    position:relative;height:auto;width:100%;
-    flex-direction:row;align-items:center;flex-wrap:wrap;
-    padding:14px 16px;border-right:none;border-bottom:1px solid var(--border);
+    position:fixed;top:0;left:0;bottom:0;
+    width:240px;height:100vh;
+    z-index:900;
+    transform:translateX(-100%);
+    transition:transform .22s ease;
+    padding:22px 16px 18px;
+    border-right:1px solid var(--border);
   }
-  .sidebar-logo,.sidebar-sub{padding:0;}
-  .sidebar-sub{margin-bottom:0;margin-right:auto;}
-  .sidebar-section-label{display:none;}
-  .sidebar-nav{flex-direction:row;margin-bottom:0;margin-left:auto;}
-  .sidebar-status{margin-top:0;border-top:none;padding-top:0;display:flex;align-items:center;gap:10px;}
-  .sidebar-status .last-update{margin-bottom:0;padding:0;}
-  .logout-btn{width:auto;}
+  .shell:not(.sidebar-collapsed) .sidebar{
+    transform:translateX(0);
+  }
+  /* on mobile, collapsed = hidden drawer; expanded = visible drawer.
+     content never needs to fade since the drawer fully overlays it. */
+  .sidebar > *{opacity:1!important;pointer-events:auto!important;}
+  .shell.sidebar-collapsed .sidebar{
+    padding:22px 16px 18px;border-right-color:var(--border);
+  }
   .main{padding:20px 16px 50px;}
 }
 
@@ -530,10 +578,11 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
 
 <!-- ── APP ───────────────────────────────────────────────────────────── -->
 <div id="app">
-  <div class="shell">
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebarOnMobile()"></div>
+  <div class="shell" id="shell">
 
     <!-- sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">CRYPTO_<span>LOGS</span></div>
       <div class="sidebar-sub">// internal dashboard — @fbrianzy</div>
 
@@ -561,6 +610,18 @@ tbody tr:hover{background:rgba(255,255,255,0.03)!important;}
     <!-- main content -->
     <main class="main">
       <div class="wrap">
+
+        <!-- top bar with hamburger toggle -->
+        <div class="main-topbar">
+          <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Buka/tutup sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <span class="page-title-inline" id="main-topbar-label">Logs Predict</span>
+        </div>
 
         <!-- ══ TAB: PREDICT ════════════════════════════════════════════════ -->
         <div class="tab-panel active" id="tab-predict">
@@ -931,7 +992,50 @@ function switchTab(name, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
+
+  const label = document.getElementById('main-topbar-label');
+  if (label) label.textContent = btn.textContent.trim();
+
+  // on mobile the sidebar is an overlay drawer — close it after picking a menu item
+  if (window.matchMedia('(max-width:860px)').matches) {
+    closeSidebarOnMobile();
+  }
 }
+
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR TOGGLE (hamburger)
+═══════════════════════════════════════════════ */
+function isMobileViewport() {
+  return window.matchMedia('(max-width:860px)').matches;
+}
+
+function updateBackdrop() {
+  const shell    = document.getElementById('shell');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!shell || !backdrop) return;
+  const collapsed = shell.classList.contains('sidebar-collapsed');
+  // on mobile, the drawer is OPEN when NOT collapsed — show backdrop then.
+  // on desktop, there's no overlay, so the backdrop never shows.
+  backdrop.classList.toggle('show', isMobileViewport() && !collapsed);
+}
+
+function toggleSidebar() {
+  const shell = document.getElementById('shell');
+  if (!shell) return;
+  shell.classList.toggle('sidebar-collapsed');
+  updateBackdrop();
+}
+
+function closeSidebarOnMobile() {
+  const shell = document.getElementById('shell');
+  if (!shell) return;
+  shell.classList.add('sidebar-collapsed');
+  updateBackdrop();
+}
+
+// keep backdrop state correct if the viewport crosses the mobile breakpoint
+window.addEventListener('resize', updateBackdrop);
 
 
 /* ═══════════════════════════════════════════════
@@ -1153,8 +1257,13 @@ function renderTable(entries) {
     if (rows.length > 0) {
       const headH   = thead ? thead.getBoundingClientRect().height : 0;
       const rowH    = rows[0].getBoundingClientRect().height;
-      const visible = Math.min(10, rows.length);
-      wrap.style.maxHeight = (headH + rowH * visible + 2) + 'px';
+      // guard: if the table isn't actually visible yet (e.g. still inside a
+      // display:none ancestor during boot), rowH/headH read as 0 — skip
+      // clamping so the table doesn't collapse to an invisible 2px box.
+      if (rowH > 0) {
+        const visible = Math.min(10, rows.length);
+        wrap.style.maxHeight = (headH + rowH * visible + 2) + 'px';
+      }
     }
   });
 }
@@ -1409,6 +1518,18 @@ async function bootApp() {
   setTimeout(() => {
     loading.style.display = 'none';
     app.style.display = 'block';
+    // sidebar starts open on desktop, closed (drawer hidden) on mobile
+    const shell = document.getElementById('shell');
+    if (shell) {
+      shell.classList.toggle('sidebar-collapsed', isMobileViewport());
+      updateBackdrop();
+    }
+    // re-run the same flow as clicking "Reset" now that #app is actually
+    // visible — this is what fixes the table rendering empty/collapsed
+    // on first boot (measurements during display:none read 0 height).
+    resetFilters();
+    // charts can also mis-measure while #app was display:none — redraw now
+    renderCharts(allEntries, chartRange);
   }, 450);
 }
 
