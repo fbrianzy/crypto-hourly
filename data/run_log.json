@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-22T19:39:04.120572+00:00",
+  "updated_at": "2026-06-22T21:49:44.176013+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -3840,6 +3840,46 @@
       "ts": "2026-06-22T19:39:04.120572+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 22 Jun 2026, 19:39 UTC"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,109.84, signal=DOWN (prob=0.39, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,727.44, signal=UP (prob=0.58, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Kami melihat sinyal penurunan untuk Bitcoin dengan probabilitas naik hanya 39,3%..."
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=129KB"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 22 Jun 2026, 21:49 UTC"
     }
   ],
   "discord_runs": [
@@ -4320,6 +4360,11 @@
     },
     {
       "ts": "2026-06-22T19:39:04.120572+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-22T21:49:44.176013+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
