@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-22T00:15:22.117789+00:00",
+  "updated_at": "2026-06-22T05:33:17.749336+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -3680,6 +3680,46 @@
       "ts": "2026-06-22T00:15:22.117789+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 22 Jun 2026, 00:15 UTC"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,157.13, signal=DOWN (prob=0.35, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,735.59, signal=DOWN (prob=0.46, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Berikut adalah insight singkat untuk kedua koin:\n\nKedua koin, BTC dan ETH, menun..."
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=137KB"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 22 Jun 2026, 05:33 UTC"
     }
   ],
   "discord_runs": [
@@ -4140,6 +4180,11 @@
     },
     {
       "ts": "2026-06-22T00:15:22.117789+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-22T05:33:17.749336+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
