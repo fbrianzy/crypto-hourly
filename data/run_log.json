@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-30T11:28:10.290381+00:00",
+  "updated_at": "2026-06-30T13:23:22.637147+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -7080,6 +7080,46 @@
       "ts": "2026-06-30T11:28:10.290381+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 30 Jun 2026, 11:28 UTC"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$58,434.00, signal=UP (prob=0.51, thr=0.41)"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,557.55, signal=UP (prob=0.55, thr=0.50)"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Dalam 1 jam terakhir, model XGBoost mengidentifikasi sinyal \"Maju\" (UP) untuk ke..."
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=129KB"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 30 Jun 2026, 13:23 UTC"
     }
   ],
   "discord_runs": [
@@ -7965,6 +8005,11 @@
     },
     {
       "ts": "2026-06-30T11:28:10.290381+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-06-30T13:23:22.637147+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
