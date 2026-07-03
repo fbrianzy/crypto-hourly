@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-03T11:03:25.042156+00:00",
+  "updated_at": "2026-07-03T13:03:30.640711+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -8320,6 +8320,46 @@
       "ts": "2026-07-03T11:03:25.042156+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 03 Jul 2026, 11:03 UTC"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$61,905.97, signal=DOWN (prob=0.33, thr=0.41)"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,734.49, signal=DOWN (prob=0.46, thr=0.50)"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Kedua koin, BTC dan ETH, menunjukkan sinyal penurunan berdasarkan model XGBoost...."
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=118KB"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 03 Jul 2026, 13:03 UTC"
     }
   ],
   "discord_runs": [
@@ -9360,6 +9400,11 @@
     },
     {
       "ts": "2026-07-03T11:03:25.042156+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-07-03T13:03:30.640711+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
