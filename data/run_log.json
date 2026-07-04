@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-04T01:09:49.649783+00:00",
+  "updated_at": "2026-07-04T04:52:33.939945+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-12T10:53:16.317852+00:00",
@@ -8680,6 +8680,46 @@
       "ts": "2026-07-04T01:09:49.649783+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 04 Jul 2026, 01:09 UTC"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$62,640.65, signal=DOWN (prob=0.29, thr=0.41)"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,758.50, signal=DOWN (prob=0.39, thr=0.50)"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — Berdasarkan output model XGBoost, saya melihat bahwa kedua koin, BTC dan ETH, me..."
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=119KB"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 04 Jul 2026, 04:52 UTC"
     }
   ],
   "discord_runs": [
@@ -9765,6 +9805,11 @@
     },
     {
       "ts": "2026-07-04T01:09:49.649783+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-07-04T04:52:33.939945+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
