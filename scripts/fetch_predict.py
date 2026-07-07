@@ -451,7 +451,7 @@ def get_groq_insight(all_inds, all_signals):
         r = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
-            json={"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": prompt}],
+            json={"model": "groq/compound-mini", "messages": [{"role": "user", "content": prompt}],
                   "max_tokens": 130, "temperature": 0.4},
             timeout=20,
         )
@@ -600,7 +600,7 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
         p.append(f'<line x1="{PAD}" y1="{INS_Y}" x2="{W-PAD}" y2="{INS_Y}" '
                  f'stroke="#21262d" stroke-width="1"/>')
         p.append(f'<text x="{PAD}" y="{INS_Y+18}" font-family="monospace" font-size="11" '
-                 f'font-weight="bold" fill="#58a6ff">AI Insight  (Groq · llama3-8b)</text>')
+                 f'font-weight="bold" fill="#58a6ff">AI Insight  (Groq · groq/compound-mini)</text>')
         for li, line in enumerate(ins_lines):
             p.append(f'<text x="{PAD}" y="{INS_Y+36+li*22}" font-family="monospace" '
                      f'font-size="13" fill="#8b949e">{_esc(line)}</text>')
