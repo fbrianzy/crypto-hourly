@@ -24,6 +24,9 @@ WEBHOOK_URL  = os.environ.get("DISCORD_WEBHOOK", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 COINDESK_API_KEY = os.environ.get("COINDESK_API_KEY", "")
 
+if not COINDESK_API_KEY:
+    raise RuntimeError("COINDESK_API_KEY is empty — check GitHub Environment secrets scope")
+
 COIN_META = {
     "BTC-USD": {"name": "Bitcoin",  "symbol": "BTC", "hex": "#F7931A", "icon": "BTC"},
     "ETH-USD": {"name": "Ethereum", "symbol": "ETH", "hex": "#627EEA", "icon": "ETH"},
