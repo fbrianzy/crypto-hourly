@@ -452,11 +452,22 @@ def get_groq_insight(all_inds, all_signals):
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={"model": "openai/gpt-oss-20b", "messages": [{"role": "user", "content": prompt}],
-                  "max_tokens": 130, "temperature": 0.4},
+                  "max_tokens": 350, "temperature": 0.4, "reasoning_effort": "low"},
             timeout=20,
         )
         r.raise_for_status()
-        text = r.json()["choices"][0]["message"]["content"].strip()
+        data          = r.json()
+        choice        = data["choices"][0]
+        finish_reason = choice.get("finish_reason")
+        text          = (choice["message"].get("content") or "").strip()
+
+        if not text:
+            print(f"  Groq returned empty content — finish_reason={finish_reason}")
+            return ""
+
+        if finish_reason == "length":
+            print("  WARNING: Groq response truncated (finish_reason=length) — consider raising max_tokens")
+
         print(f"  OK  insight: {text[:60]}...")
         return text
     except Exception as e:
