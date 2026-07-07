@@ -451,7 +451,7 @@ def get_groq_insight(all_inds, all_signals):
         r = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
-            json={"model": "groq/compound-mini", "messages": [{"role": "user", "content": prompt}],
+            json={"model": "openai/gpt-oss-20b", "messages": [{"role": "user", "content": prompt}],
                   "max_tokens": 130, "temperature": 0.4},
             timeout=20,
         )
@@ -615,7 +615,7 @@ def build_svg_card(all_dfs, all_signals, all_inds, insight, generated_at):
              f'stroke="#21262d" stroke-width="1"/>')
     p.append(f'<text x="{PAD}" y="{FTY+18}" font-family="monospace" font-size="11" '
              f'fill="#30363d">fbrianzy.github.io/crypto-hourly  |  github.com/fbrianzy/crypto-hourly'
-             f'  |  Source: CoinDesk API</text>')
+             f'  |  Source: Coinbase API</text>')
     p.append(f'<text x="{PAD}" y="{FTY+34}" font-family="monospace" font-size="10" '
              f'fill="#21262d">Crypto Bot by @fbrianzy  |  Auto-update via GitHub Actions</text>')
 
