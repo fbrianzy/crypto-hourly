@@ -22,10 +22,6 @@ MAX_RETRIES  = 3
 RETRY_DELAY  = 3
 WEBHOOK_URL  = os.environ.get("DISCORD_WEBHOOK", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-COINDESK_API_KEY = os.environ.get("COINDESK_API_KEY", "")
-
-if not COINDESK_API_KEY:
-    raise RuntimeError("COINDESK_API_KEY is empty — check GitHub Environment secrets scope")
 
 COIN_META = {
     "BTC-USD": {"name": "Bitcoin",  "symbol": "BTC", "hex": "#F7931A", "icon": "BTC"},
@@ -89,91 +85,163 @@ def load_models():
 # ═══════════════════════════════════════════════
 #  Data fetching
 # ═══════════════════════════════════════════════
-def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
-    """
-    Fetch 168 candles dari CoinDesk Data API (spot OHLCV hourly).
-    Mencoba beberapa market sebagai fallback.
-    Returns DataFrame with columns: ts_utc, open, high, low, close, volume
-    """
-    MARKETS_TO_TRY = ["coinbase", "kraken", "bitstamp", "gemini"]
+CANDLES_NEEDED = 1300  # MA50_1D needs 50d x 24h = 1200 candles + buffer
 
-    headers = {
-        "authorization": f"Apikey {COINDESK_API_KEY}",
-    }
+BINANCE_SYMBOLS  = {"BTC": "BTCUSDT", "ETH": "ETHUSDT"}
+COINBASE_PRODUCTS = {"BTC": "BTC-USD", "ETH": "ETH-USD"}
+
+REQUEST_HEADERS = {"User-Agent": "crypto-hourly-bot/1.0 (+github.com/fbrianzy/crypto-hourly)"}
+
+
+def _fetch_binance(coin_symbol: str, needed: int) -> pd.DataFrame:
+    """
+    Binance public klines endpoint. No API key, no monthly quota, generous
+    per-minute weight limit. Paginates backwards with endTime since a single
+    request maxes out at 1000 candles.
+    """
+    symbol = BINANCE_SYMBOLS[coin_symbol]
+    url    = "https://api.binance.com/api/v3/klines"
 
     last_error = None
-    for market in MARKETS_TO_TRY:
-        url    = "https://data-api.coindesk.com/spot/v1/historical/hours"
-        params = {
-            "market":     market,
-            "instrument": f"{coin_symbol}-USD",
-            "limit":      1300,  # MA50_1D needs 50d x 24h = 1200 candles + buffer   # need more candles for feature engineering (MA50 needs 50d)
-            "groups":     "OHLC,VOLUME",
-        }
-
-        for attempt in range(MAX_RETRIES):
-            try:
-                print(f"  Fetching {coin_symbol} [{market}] (attempt {attempt+1}/{MAX_RETRIES})...")
-                r = requests.get(url, params=params, headers=headers, timeout=30)
-
-                if r.status_code == 400:
-                    body = r.json()
-                    err_msg = body.get("Err", {}).get("message", r.text[:200])
-                    print(f"  400 on [{market}]: {err_msg}")
-                    last_error = err_msg
-                    break
-
+    for attempt in range(MAX_RETRIES):
+        try:
+            all_rows = []
+            end_time = None
+            while len(all_rows) < needed:
+                params = {"symbol": symbol, "interval": "1h", "limit": 1000}
+                if end_time:
+                    params["endTime"] = end_time
+                r = requests.get(url, params=params, headers=REQUEST_HEADERS, timeout=20)
                 r.raise_for_status()
-                result = r.json()
-
-                err = result.get("Err", {})
-                if err and err.get("message"):
-                    raise ValueError(f"API error: {err.get('message')}")
-
-                data_list = result.get("Data", [])
-                if not data_list:
-                    raise ValueError("No records returned")
-
-                rows = []
-                for d in data_list:
-                    ts    = d.get("TIMESTAMP")
-                    close = d.get("CLOSE")
-                    open_ = d.get("OPEN")
-                    high  = d.get("HIGH")
-                    low   = d.get("LOW")
-                    vol   = d.get("VOLUME", 0)
-                    if ts and close:
-                        rows.append({
-                            "timestamp": ts,
-                            "open":  float(open_ or close),
-                            "high":  float(high  or close),
-                            "low":   float(low   or close),
-                            "close": float(close),
-                            "volume": float(vol or 0),
-                        })
-
-                if not rows:
-                    raise ValueError("No valid rows after parsing")
-
-                df = pd.DataFrame(rows)
-                df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
-                df = df.sort_values("ts_utc").reset_index(drop=True)
-                print(f"  OK  {len(df)} candles [{market}] | last: ${df['close'].iloc[-1]:,.2f}")
-                return df[["ts_utc", "open", "high", "low", "close", "volume"]]
-
-            except requests.RequestException as e:
-                print(f"  Request error [{market}]: {e}")
-                if attempt < MAX_RETRIES - 1:
-                    time.sleep(RETRY_DELAY)
-                else:
-                    last_error = str(e)
+                batch = r.json()
+                if not batch:
                     break
-            except ValueError as e:
-                print(f"  Parse error [{market}]: {e}")
-                last_error = str(e)
-                break
+                all_rows = batch + all_rows
+                end_time = batch[0][0] - 1  # ms, page further back
+                if len(batch) < 1000:
+                    break  # exchange has no more history
 
-    raise RuntimeError(f"Failed to fetch {coin_symbol}. Last error: {last_error}")
+            if not all_rows:
+                raise ValueError("No data returned from Binance")
+
+            rows = []
+            for k in all_rows:
+                rows.append({
+                    "timestamp": k[0] // 1000,
+                    "open":  float(k[1]),
+                    "high":  float(k[2]),
+                    "low":   float(k[3]),
+                    "close": float(k[4]),
+                    "volume": float(k[5]),
+                })
+            df = pd.DataFrame(rows).drop_duplicates(subset="timestamp")
+            df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+            df = df.sort_values("ts_utc").reset_index(drop=True)
+            df = df.tail(needed).reset_index(drop=True)
+            return df[["ts_utc", "open", "high", "low", "close", "volume"]]
+
+        except requests.RequestException as e:
+            last_error = str(e)
+            print(f"  Binance request error (attempt {attempt+1}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY)
+        except ValueError as e:
+            last_error = str(e)
+            print(f"  Binance parse error: {e}")
+            break
+
+    raise RuntimeError(f"Binance fetch failed: {last_error}")
+
+
+def _fetch_coinbase(coin_symbol: str, needed: int) -> pd.DataFrame:
+    """
+    Coinbase Exchange public candles endpoint (no API key). Caps out at 300
+    candles per request, so this pages backwards in time until enough
+    candles are collected. Used only as fallback if Binance is unreachable.
+    """
+    product     = COINBASE_PRODUCTS[coin_symbol]
+    url         = f"https://api.exchange.coinbase.com/products/{product}/candles"
+    granularity = 3600
+
+    last_error = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            all_rows = []
+            end = pd.Timestamp.now(tz="UTC")
+            while len(all_rows) < needed:
+                start = end - pd.Timedelta(seconds=granularity * 300)
+                params = {
+                    "granularity": granularity,
+                    "start": start.isoformat(),
+                    "end": end.isoformat(),
+                }
+                r = requests.get(url, params=params, headers=REQUEST_HEADERS, timeout=20)
+                r.raise_for_status()
+                batch = r.json()
+                if not batch:
+                    break
+                all_rows.extend(batch)
+                end = start
+                time.sleep(0.3)  # be polite to the public endpoint
+
+            if not all_rows:
+                raise ValueError("No data returned from Coinbase")
+
+            rows = []
+            for c in all_rows:
+                # candle shape: [time, low, high, open, close, volume]
+                rows.append({
+                    "timestamp": c[0],
+                    "low":   float(c[1]),
+                    "high":  float(c[2]),
+                    "open":  float(c[3]),
+                    "close": float(c[4]),
+                    "volume": float(c[5]),
+                })
+            df = pd.DataFrame(rows).drop_duplicates(subset="timestamp")
+            df["ts_utc"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+            df = df.sort_values("ts_utc").reset_index(drop=True)
+            df = df.tail(needed).reset_index(drop=True)
+            return df[["ts_utc", "open", "high", "low", "close", "volume"]]
+
+        except requests.RequestException as e:
+            last_error = str(e)
+            print(f"  Coinbase request error (attempt {attempt+1}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(RETRY_DELAY)
+        except ValueError as e:
+            last_error = str(e)
+            print(f"  Coinbase parse error: {e}")
+            break
+
+    raise RuntimeError(f"Coinbase fetch failed: {last_error}")
+
+
+def fetch_cryptocompare_hourly(coin_symbol: str) -> pd.DataFrame:
+    """
+    Fetch ~1300 hourly OHLCV candles using free, keyless public exchange APIs.
+    No monthly call cap, no billing/subscription to manage.
+
+    Primary:  Binance klines            (no key, no monthly cap)
+    Fallback: Coinbase Exchange candles  (no key, no monthly cap)
+
+    Returns DataFrame with columns: ts_utc, open, high, low, close, volume
+    """
+    print(f"  Fetching {coin_symbol} [binance]...")
+    try:
+        df = _fetch_binance(coin_symbol, CANDLES_NEEDED)
+        print(f"  OK  {len(df)} candles [binance] | last: ${df['close'].iloc[-1]:,.2f}")
+        return df
+    except Exception as e:
+        print(f"  Binance failed: {e}")
+
+    print(f"  Fetching {coin_symbol} [coinbase]...")
+    try:
+        df = _fetch_coinbase(coin_symbol, CANDLES_NEEDED)
+        print(f"  OK  {len(df)} candles [coinbase] | last: ${df['close'].iloc[-1]:,.2f}")
+        return df
+    except Exception as e:
+        raise RuntimeError(f"Failed to fetch {coin_symbol} from all providers. Last error: {e}")
 
 
 # ═══════════════════════════════════════════════
@@ -758,7 +826,7 @@ def main():
                 "ts":       now_utc,
                 "level":    "ERROR",
                 "message":  f"fetch/predict {ticker} FAILED — {err_msg}",
-                "solution": "Periksa COINDESK_API_KEY, koneksi jaringan, atau model .pkl di folder /model/.",
+                "solution": "Periksa koneksi jaringan ke Binance/Coinbase API, atau model .pkl di folder /model/.",
             })
 
     if fetch_errors:
@@ -766,7 +834,7 @@ def main():
             "ts":       now_utc,
             "level":    "FAIL",
             "message":  f"Run ABORTED — gagal fetch/predict: {', '.join(fetch_errors)}",
-            "solution": "Pastikan COINDESK_API_KEY valid dan file model .pkl tersedia di /model/.",
+            "solution": "Pastikan Binance/Coinbase API dapat diakses dan file model .pkl tersedia di /model/.",
         })
         _append_run_logs(now_utc, gh_log_entries, dc_log_entries)
         raise SystemExit(1)
