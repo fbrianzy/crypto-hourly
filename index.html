@@ -267,7 +267,7 @@ body::after{
         <div class="chip">ETH+: Dist EMA &middot; Candle &middot; Volume Change</div>
         <div class="chip">CV: TimeSeriesSplit 5-fold</div>
         <div class="chip">Data: Coinbase API 1H</div>
-        <div class="chip">AI: Groq &middot; llama-3.1-8b-instant</div>
+        <div class="chip">AI: Groq &middot; gpt-oss-20b</div>
       </div>
     </div>
   </div>
@@ -463,9 +463,9 @@ async function main(){
   /* AI insight */
   const aiCard=document.getElementById('ai-card');
   if(insight){
-    aiCard.innerHTML=`<div class="ai-header"><span class="ai-badge">AI INSIGHT</span><span class="ai-model">Groq · llama-3.1-8b-instant</span></div><div class="ai-text">${insight.replace(/\n/g,'<br/>')}</div>`;
+    aiCard.innerHTML=`<div class="ai-header"><span class="ai-badge">AI INSIGHT</span><span class="ai-model">Groq · gpt-oss-20b</span></div><div class="ai-text">${insight.replace(/\n/g,'<br/>')}</div>`;
   }else{
-    aiCard.innerHTML=`<div class="ai-header"><span class="ai-badge">AI INSIGHT</span><span class="ai-model">Groq · llama-3.1-8b-instant</span></div><div class="ai-empty">Insight tidak tersedia untuk update ini.</div>`;
+    aiCard.innerHTML=`<div class="ai-header"><span class="ai-badge">AI INSIGHT</span><span class="ai-model">Groq · gpt-oss-20b</span></div><div class="ai-empty">Insight tidak tersedia untuk update ini.</div>`;
   }
 
   renderMiniTerminal(predLogEntries);
