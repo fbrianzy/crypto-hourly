@@ -35,16 +35,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Debug check API key
-        env:
-          COINDESK_API_KEY: ${{ secrets.COINDESK_API_KEY }}
-        run: |
-          if [ -z "$COINDESK_API_KEY" ]; then
-            echo "COINDESK_API_KEY is EMPTY"
-          else
-            echo "COINDESK_API_KEY length: ${#COINDESK_API_KEY}"
-          fi
-
       - name: Guard - skip if last run < 13 minutes
         run: |
           FILE="data/_timestamp.txt"
@@ -82,7 +72,6 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          COINDESK_API_KEY: ${{ secrets.COINDESK_API_KEY }}
         run: |
           python scripts/fetch_predict.py
           date -u +"%Y-%m-%dT%H:%M:%SZ" > data/_timestamp.txt
