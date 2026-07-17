@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-17T17:39:13.408485+00:00",
+  "updated_at": "2026-07-17T18:41:36.008728+00:00",
   "gh_runs": [
     {
       "ts": "2026-06-17T19:31:31.320618+00:00",
@@ -13400,6 +13400,46 @@
       "ts": "2026-07-17T17:39:13.408485+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 17 Jul 2026, 17:39 UTC"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,034.74, signal=DOWN (prob=0.33, thr=0.41)"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,839.27, signal=DOWN (prob=0.48, thr=0.50)"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC: Prob_up 0.333 di bawah threshold 0.41 menunjukkan sinyal turun; RSI 62.1 da..."
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=129KB"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 17 Jul 2026, 18:41 UTC"
     }
   ],
   "discord_runs": [
@@ -15075,6 +15115,11 @@
     },
     {
       "ts": "2026-07-17T17:39:13.408485+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-07-17T18:41:36.008728+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
