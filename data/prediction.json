@@ -1,47 +1,47 @@
 {
-  "generated_at_utc": "2026-08-02T01:16:22.396625+00:00",
+  "generated_at_utc": "2026-08-02T04:42:21.027103+00:00",
   "next_1h_prediction": {
-    "BTC-USD": "UP",
+    "BTC-USD": "DOWN",
     "ETH-USD": "DOWN"
   },
   "method": "xgboost_tuned_threshold_BTC29f_ETH37f",
   "note": "UP=prob_up>=threshold, DOWN=prob_up<threshold. Threshold tuned for best Macro F1.",
-  "ai_insight": "BTC: Prob_up 0.422 melewati threshold 0.41, sinyal UP. Harga $62,966.14, RSI 47.9, momentum 1H/3H positif, EMA12 di bawah EMA26, Bollinger Band di atas tengah. ETH: Prob_up 0.461 di bawah threshold 0.50, sinyal DOWN. Harga $1,854.28, RSI 42.2, momentum 1H/3H positif, EMA12 di bawah EMA26, Bollinger Band di bawah tengah.",
+  "ai_insight": "BTC: Prob_up 0.391 di bawah threshold 0.41, sinyal DOWN. RSI 62.4 dan momentum 1‑jam positif namun EMA12 masih di atas EMA26 menandakan tekanan jual.  \nETH: Prob_up 0.467 di bawah threshold 0.50, sinyal DOWN. RSI 51.9 dan momentum 3‑jam positif, namun EMA12 berada di bawah EMA26 menunjukkan potensi penurunan harga.",
   "indicators": {
     "BTC-USD": {
-      "last": 62966.14,
-      "mom_1h": 0.3044842692154548,
-      "mom_3h": 0.319889824578401,
-      "sma12": 62966.14,
-      "ema12": 62803.08726838179,
-      "ema26": 62915.75763140628,
-      "rsi14": 47.9127787868985,
-      "bb_lo": 62490.12261617201,
-      "bb_mid": 62864.399,
-      "bb_hi": 63238.675383827984,
-      "prob_up": 0.42169949412345886,
+      "last": 63459.92,
+      "mom_1h": 0.10576899263277095,
+      "mom_3h": 0.8564224532171538,
+      "sma12": 63459.92,
+      "ema12": 63040.47969485697,
+      "ema26": 63015.74776968568,
+      "rsi14": 62.417999697229526,
+      "bb_lo": 62373.84406640451,
+      "bb_mid": 62920.606499999994,
+      "bb_hi": 63467.36893359548,
+      "prob_up": 0.39115965366363525,
       "threshold": 0.4100000000000001,
       "votes": 2,
       "vote_map": {
         "mom_1h": true,
         "mom_3h": true,
-        "ema_x": false,
+        "ema_x": true,
         "rsi": true,
         "bb_pos": true
       }
     },
     "ETH-USD": {
-      "last": 1854.28,
-      "mom_1h": 0.5051600034688963,
-      "mom_3h": 0.47575182877268585,
-      "sma12": 1854.28,
-      "ema12": 1850.3181150594442,
-      "ema26": 1857.6965614167493,
-      "rsi14": 42.22602251674497,
-      "bb_lo": 1830.8237164038599,
-      "bb_mid": 1857.2075,
-      "bb_hi": 1883.59128359614,
-      "prob_up": 0.4613223373889923,
+      "last": 1876.7,
+      "mom_1h": 0.06344940842757385,
+      "mom_3h": 1.1638123884837093,
+      "sma12": 1876.7,
+      "ema12": 1860.4523575810917,
+      "ema26": 1861.4736839041232,
+      "rsi14": 51.949745170084135,
+      "bb_lo": 1829.5504974773446,
+      "bb_mid": 1858.4190000000003,
+      "bb_hi": 1887.287502522656,
+      "prob_up": 0.46673667430877686,
       "threshold": 0.5000000000000002,
       "votes": 2,
       "vote_map": {
@@ -49,7 +49,7 @@
         "mom_3h": true,
         "ema_x": false,
         "rsi": true,
-        "bb_pos": false
+        "bb_pos": true
       }
     }
   }
