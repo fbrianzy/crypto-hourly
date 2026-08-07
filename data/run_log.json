@@ -1,46 +1,6 @@
 {
-  "updated_at": "2026-08-07T03:30:24.639339+00:00",
+  "updated_at": "2026-08-07T05:16:58.449552+00:00",
   "gh_runs": [
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "fetch BTC-USD OK — 1300 candles, last=$62,901.83, signal=UP (prob=0.50, thr=0.41)"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "fetch ETH-USD OK — 1300 candles, last=$1,754.80, signal=UP (prob=0.60, thr=0.50)"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "prices.json written"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "Groq insight OK — BTC: Prob_up 0.499 melewati threshold 0.41 menunjukkan sinyal naik, meskipun mom..."
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "prediction.json written"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "pred_log.json updated"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "SVG card built, PNG=136KB"
-    },
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "Run SUCCESS — 08 Jul 2026, 03:45 UTC"
-    },
     {
       "ts": "2026-07-08T06:17:08.907729+00:00",
       "level": "OK",
@@ -16280,14 +16240,49 @@
       "ts": "2026-08-07T03:30:24.639339+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 07 Aug 2026, 03:30 UTC"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$64,177.63, signal=UP (prob=0.52, thr=0.41)"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$1,895.41, signal=DOWN (prob=0.40, thr=0.50)"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC menunjukkan sinyal naik dengan probabilitas 0.522 di atas threshold 0.41, me..."
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=130KB"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 07 Aug 2026, 05:16 UTC"
     }
   ],
   "discord_runs": [
-    {
-      "ts": "2026-07-08T03:45:19.273061+00:00",
-      "level": "OK",
-      "message": "Discord image sent successfully"
-    },
     {
       "ts": "2026-07-08T06:17:08.907729+00:00",
       "level": "OK",
@@ -18315,6 +18310,11 @@
     },
     {
       "ts": "2026-08-07T03:30:24.639339+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-08-07T05:16:58.449552+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
