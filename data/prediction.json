@@ -1,25 +1,25 @@
 {
-  "generated_at_utc": "2026-08-13T08:56:36.346227+00:00",
+  "generated_at_utc": "2026-08-13T10:10:41.763744+00:00",
   "next_1h_prediction": {
     "BTC-USD": "DOWN",
     "ETH-USD": "UP"
   },
   "method": "xgboost_tuned_threshold_BTC29f_ETH37f",
   "note": "UP=prob_up>=threshold, DOWN=prob_up<threshold. Threshold tuned for best Macro F1.",
-  "ai_insight": "BTC: Prob_up 0.370 di bawah threshold 0.41 menunjukkan sinyal turun; RSI 64.6 dan momentum negatif menegaskan tekanan jual, meski EMA12 masih di atas EMA26.  \nETH: Prob_up 0.544 di atas threshold 0.50 mengindikasikan sinyal naik; RSI 53.3 dan momentum sedikit negatif namun EMA12>EMA26 memberi dukungan bullish.",
+  "ai_insight": "BTC: Prob_up 0.401 di bawah threshold 0.41 menandakan sinyal turun; RSI 52 dan momentum negatif satu jam menambah kepercayaan.  \nETH: Prob_up 0.552 di atas threshold 0.50 memberi sinyal naik; meski momentum satu jam negatif, EMA12>EMA26 dan BB di bawah mid mendukung breakout bullish.",
   "indicators": {
     "BTC-USD": {
-      "last": 63691.63,
-      "mom_1h": -0.17474067098913748,
-      "mom_3h": -0.17863632994027379,
-      "sma12": 63691.63,
-      "ema12": 63643.8421548332,
-      "ema26": 63636.67676798458,
-      "rsi14": 64.61729188667957,
-      "bb_lo": 63150.901011934184,
-      "bb_mid": 63518.163,
-      "bb_hi": 63885.42498806582,
-      "prob_up": 0.37016361951828003,
+      "last": 63584.2,
+      "mom_1h": -0.21019135370106135,
+      "mom_3h": -0.3431180167991821,
+      "sma12": 63584.2,
+      "ema12": 63646.14240762523,
+      "ema26": 63639.417114247815,
+      "rsi14": 52.01568861086261,
+      "bb_lo": 63183.19694778074,
+      "bb_mid": 63530.522,
+      "bb_hi": 63877.84705221925,
+      "prob_up": 0.4005696475505829,
       "threshold": 0.4100000000000001,
       "votes": 2,
       "vote_map": {
@@ -31,17 +31,17 @@
       }
     },
     "ETH-USD": {
-      "last": 1887.17,
-      "mom_1h": -0.3537729622413277,
-      "mom_3h": -0.35587752321916133,
-      "sma12": 1887.17,
-      "ema12": 1887.8326532476626,
-      "ema26": 1886.890583703504,
-      "rsi14": 53.25972660357523,
-      "bb_lo": 1870.8499627896613,
-      "bb_mid": 1885.3884999999998,
-      "bb_hi": 1899.9270372103383,
-      "prob_up": 0.5441239476203918,
+      "last": 1884.24,
+      "mom_1h": -0.1869931188651197,
+      "mom_3h": -0.5084826308035861,
+      "sma12": 1884.24,
+      "ema12": 1887.395149548736,
+      "ema26": 1886.8256881571217,
+      "rsi14": 49.63075586446577,
+      "bb_lo": 1871.7033623143072,
+      "bb_mid": 1884.7929999999997,
+      "bb_hi": 1897.882637685692,
+      "prob_up": 0.5515846610069275,
       "threshold": 0.5000000000000002,
       "votes": 3,
       "vote_map": {
@@ -49,7 +49,7 @@
         "mom_3h": false,
         "ema_x": true,
         "rsi": true,
-        "bb_pos": true
+        "bb_pos": false
       }
     }
   }
