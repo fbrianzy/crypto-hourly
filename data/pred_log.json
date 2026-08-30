@@ -1,24 +1,6 @@
 {
-  "updated_at": "2026-08-30T01:31:03.824609+00:00",
+  "updated_at": "2026-08-30T07:17:27.622005+00:00",
   "entries": [
-    {
-      "ts": "2026-07-31T04:45:09.737310+00:00",
-      "ticker": "BTC-USD",
-      "signal": "UP",
-      "price_prev": 64260.89,
-      "price_next": 63886.32,
-      "prob_up": 0.4679011106491089,
-      "threshold": 0.4100000000000001
-    },
-    {
-      "ts": "2026-07-31T04:45:09.737310+00:00",
-      "ticker": "ETH-USD",
-      "signal": "UP",
-      "price_prev": 1905.04,
-      "price_next": 1884.6,
-      "prob_up": 0.5298960208892822,
-      "threshold": 0.5000000000000002
-    },
     {
       "ts": "2026-07-31T07:36:50.357598+00:00",
       "ticker": "BTC-USD",
@@ -13398,7 +13380,7 @@
       "ticker": "BTC-USD",
       "signal": "DOWN",
       "price_prev": 77997.2,
-      "price_next": null,
+      "price_next": 78233.48,
       "prob_up": 0.3936172127723694,
       "threshold": 0.4100000000000001
     },
@@ -13407,8 +13389,26 @@
       "ticker": "ETH-USD",
       "signal": "DOWN",
       "price_prev": 2454.35,
-      "price_next": null,
+      "price_next": 2458.12,
       "prob_up": 0.45655757188796997,
+      "threshold": 0.5000000000000002
+    },
+    {
+      "ts": "2026-08-30T07:17:27.622005+00:00",
+      "ticker": "BTC-USD",
+      "signal": "DOWN",
+      "price_prev": 78233.48,
+      "price_next": null,
+      "prob_up": 0.26066645979881287,
+      "threshold": 0.4100000000000001
+    },
+    {
+      "ts": "2026-08-30T07:17:27.622005+00:00",
+      "ticker": "ETH-USD",
+      "signal": "UP",
+      "price_prev": 2458.12,
+      "price_next": null,
+      "prob_up": 0.526909351348877,
       "threshold": 0.5000000000000002
     }
   ]
