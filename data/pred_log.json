@@ -1,42 +1,6 @@
 {
-  "updated_at": "2026-08-30T22:30:48.203204+00:00",
+  "updated_at": "2026-08-31T00:47:48.938851+00:00",
   "entries": [
-    {
-      "ts": "2026-07-31T23:17:52.446547+00:00",
-      "ticker": "BTC-USD",
-      "signal": "DOWN",
-      "price_prev": 62927.92,
-      "price_next": 62900.68,
-      "prob_up": 0.3928905725479126,
-      "threshold": 0.4100000000000001
-    },
-    {
-      "ts": "2026-07-31T23:17:52.446547+00:00",
-      "ticker": "ETH-USD",
-      "signal": "UP",
-      "price_prev": 1861.59,
-      "price_next": 1863.5,
-      "prob_up": 0.6813374757766724,
-      "threshold": 0.5000000000000002
-    },
-    {
-      "ts": "2026-08-01T00:13:54.760853+00:00",
-      "ticker": "BTC-USD",
-      "signal": "UP",
-      "price_prev": 62900.68,
-      "price_next": 62943.01,
-      "prob_up": 0.42766064405441284,
-      "threshold": 0.4100000000000001
-    },
-    {
-      "ts": "2026-08-01T00:13:54.760853+00:00",
-      "ticker": "ETH-USD",
-      "signal": "DOWN",
-      "price_prev": 1863.5,
-      "price_next": 1867.3,
-      "prob_up": 0.4925479590892792,
-      "threshold": 0.5000000000000002
-    },
     {
       "ts": "2026-08-01T03:51:47.209884+00:00",
       "ticker": "BTC-USD",
@@ -13308,7 +13272,7 @@
       "ticker": "BTC-USD",
       "signal": "DOWN",
       "price_prev": 78328.07,
-      "price_next": null,
+      "price_next": 77950.23,
       "prob_up": 0.3515567481517792,
       "threshold": 0.4100000000000001
     },
@@ -13317,8 +13281,26 @@
       "ticker": "ETH-USD",
       "signal": "UP",
       "price_prev": 2464.4,
-      "price_next": null,
+      "price_next": 2428.7,
       "prob_up": 0.5461708307266235,
+      "threshold": 0.5000000000000002
+    },
+    {
+      "ts": "2026-08-31T00:47:48.938851+00:00",
+      "ticker": "BTC-USD",
+      "signal": "UP",
+      "price_prev": 77950.23,
+      "price_next": null,
+      "prob_up": 0.5447482466697693,
+      "threshold": 0.4100000000000001
+    },
+    {
+      "ts": "2026-08-31T00:47:48.938851+00:00",
+      "ticker": "ETH-USD",
+      "signal": "UP",
+      "price_prev": 2428.7,
+      "price_next": null,
+      "prob_up": 0.5432910919189453,
       "threshold": 0.5000000000000002
     }
   ]
