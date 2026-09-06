@@ -1,86 +1,6 @@
 {
-  "updated_at": "2026-09-06T18:19:03.650329+00:00",
+  "updated_at": "2026-09-06T20:41:30.998374+00:00",
   "gh_runs": [
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "fetch BTC-USD OK — 1300 candles, last=$64,808.85, signal=DOWN (prob=0.35, thr=0.41)"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "fetch ETH-USD OK — 1300 candles, last=$1,913.74, signal=DOWN (prob=0.40, thr=0.50)"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "prices.json written"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "Groq insight OK — BTC: Prob_up 0.351 di bawah threshold 0.41, RSI 65.8 dan momentum 1‑3 jam positi..."
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "prediction.json written"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "pred_log.json updated"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "SVG card built, PNG=134KB"
-    },
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "Run SUCCESS — 07 Aug 2026, 19:16 UTC"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "fetch BTC-USD OK — 1300 candles, last=$64,970.46, signal=DOWN (prob=0.18, thr=0.41)"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "fetch ETH-USD OK — 1300 candles, last=$1,919.18, signal=DOWN (prob=0.46, thr=0.50)"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "prices.json written"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "Groq insight OK — BTC: Prob_up 0.178 di bawah threshold 0.41 dan RSI 69.5 menunjukkan overbought, ..."
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "prediction.json written"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "pred_log.json updated"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "SVG card built, PNG=130KB"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "Run SUCCESS — 07 Aug 2026, 20:01 UTC"
-    },
     {
       "ts": "2026-08-07T20:52:12.553913+00:00",
       "level": "OK",
@@ -27880,19 +27800,49 @@
       "ts": "2026-09-06T18:19:03.650329+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 06 Sep 2026, 18:19 UTC"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$79,908.70, signal=DOWN (prob=0.36, thr=0.41)"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$2,495.11, signal=DOWN (prob=0.48, thr=0.50)"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC: Prob_up 0.358 di bawah threshold 0.41 menunjukkan sinyal turun, meski momen..."
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=140KB"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 06 Sep 2026, 20:41 UTC"
     }
   ],
   "discord_runs": [
-    {
-      "ts": "2026-08-07T19:16:22.550202+00:00",
-      "level": "OK",
-      "message": "Discord image sent successfully"
-    },
-    {
-      "ts": "2026-08-07T20:01:36.508310+00:00",
-      "level": "OK",
-      "message": "Discord image sent successfully"
-    },
     {
       "ts": "2026-08-07T20:52:12.553913+00:00",
       "level": "OK",
@@ -31366,6 +31316,11 @@
     },
     {
       "ts": "2026-09-06T18:19:03.650329+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-09-06T20:41:30.998374+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
