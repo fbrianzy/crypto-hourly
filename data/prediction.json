@@ -1,55 +1,55 @@
 {
-  "generated_at_utc": "2026-10-20T13:01:42.498962+00:00",
+  "generated_at_utc": "2026-10-20T17:54:48.885996+00:00",
   "next_1h_prediction": {
     "BTC-USD": "UP",
     "ETH-USD": "DOWN"
   },
   "method": "xgboost_tuned_threshold_BTC29f_ETH37f",
   "note": "UP=prob_up>=threshold, DOWN=prob_up<threshold. Threshold tuned for best Macro F1.",
-  "ai_insight": "BTC: Prob_up 0.489 melebihi threshold 0.41 sehingga sinyal naik, meski momentum 1H dan 3H negatif dan EMA12 di bawah EMA26 menunjukkan kelemahan jangka pendek.  \nETH: Prob_up 0.382 di bawah threshold 0.50 menandakan sinyal turun, walaupun momentum 3H positif dan RSI masih di zona netral, EMA12 masih di bawah EMA26 menegaskan tekanan jual.",
+  "ai_insight": "BTC: Prob_up 0.433 di atas threshold 0.41 memberi sinyal naik, dipicu oleh EMA12>EMA26 dan posisi BB di atas tengah, meski momentum 1h masih positif namun 3h turun.  \nETH: Prob_up 0.446 di bawah threshold 0.50 menandakan sinyal turun, didukung oleh EMA12>EMA26 dan BB di atas tengah, serta momentum 1h negatif dan 3h turun.",
   "indicators": {
     "BTC-USD": {
-      "last": 81377.19,
-      "mom_1h": -0.14761190804772895,
-      "mom_3h": -0.08939226519336652,
-      "sma12": 81377.19,
-      "ema12": 81550.37409329004,
-      "ema26": 81702.41827234092,
-      "rsi14": 37.39323258869904,
-      "bb_lo": 81231.58456414317,
-      "bb_mid": 81680.7265,
-      "bb_hi": 82129.86843585684,
-      "prob_up": 0.4889223575592041,
+      "last": 82770.01,
+      "mom_1h": 0.0927281559467863,
+      "mom_3h": -0.4916627363863779,
+      "sma12": 82770.01,
+      "ema12": 82197.35676265959,
+      "ema26": 82024.15362486604,
+      "rsi14": 59.9982659304095,
+      "bb_lo": 80866.79302023849,
+      "bb_mid": 81897.546,
+      "bb_hi": 82928.29897976152,
+      "prob_up": 0.43299978971481323,
       "threshold": 0.4100000000000001,
       "votes": 2,
       "vote_map": {
-        "mom_1h": false,
+        "mom_1h": true,
         "mom_3h": false,
-        "ema_x": false,
-        "rsi": false,
-        "bb_pos": false
+        "ema_x": true,
+        "rsi": true,
+        "bb_pos": true
       }
     },
     "ETH-USD": {
-      "last": 2389.22,
-      "mom_1h": -0.17464694576754258,
-      "mom_3h": 0.216437505767475,
-      "sma12": 2389.22,
-      "ema12": 2390.8833778275243,
-      "ema26": 2395.859829847806,
-      "rsi14": 40.114684617302316,
-      "bb_lo": 2377.18741249535,
-      "bb_mid": 2394.939,
-      "bb_hi": 2412.6905875046496,
-      "prob_up": 0.3822563588619232,
+      "last": 2448.78,
+      "mom_1h": -0.01184122952794242,
+      "mom_3h": -0.8434530148484942,
+      "sma12": 2448.78,
+      "ema12": 2421.4745317365164,
+      "ema26": 2411.5255350031944,
+      "rsi14": 60.94329623741391,
+      "bb_lo": 2356.3379558290176,
+      "bb_mid": 2406.8050000000003,
+      "bb_hi": 2457.272044170983,
+      "prob_up": 0.4463055729866028,
       "threshold": 0.5000000000000002,
       "votes": 2,
       "vote_map": {
         "mom_1h": false,
-        "mom_3h": true,
-        "ema_x": false,
+        "mom_3h": false,
+        "ema_x": true,
         "rsi": true,
-        "bb_pos": false
+        "bb_pos": true
       }
     }
   }
