@@ -1,46 +1,6 @@
 {
-  "updated_at": "2026-11-03T09:10:34.302552+00:00",
+  "updated_at": "2026-11-03T17:04:14.285788+00:00",
   "gh_runs": [
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "fetch BTC-USD OK — 1300 candles, last=$85,120.58, signal=DOWN (prob=0.30, thr=0.41)"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "fetch ETH-USD OK — 1300 candles, last=$2,695.33, signal=DOWN (prob=0.50, thr=0.50)"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "prices.json written"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "Groq insight OK — BTC: Prob_up 0.303 di bawah threshold 0.41 menunjukkan sinyal turun; RSI 66.5 da..."
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "prediction.json written"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "pred_log.json updated"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "SVG card built, PNG=128KB"
-    },
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "Run SUCCESS — 04 Oct 2026, 14:42 UTC"
-    },
     {
       "ts": "2026-10-04T18:23:53.639493+00:00",
       "level": "OK",
@@ -6280,14 +6240,49 @@
       "ts": "2026-11-03T09:10:34.302552+00:00",
       "level": "OK",
       "message": "Run SUCCESS — 03 Nov 2026, 09:10 UTC"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "fetch BTC-USD OK — 1300 candles, last=$77,626.55, signal=DOWN (prob=0.31, thr=0.41)"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "fetch ETH-USD OK — 1300 candles, last=$2,293.29, signal=DOWN (prob=0.43, thr=0.50)"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "prices.json written"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "Groq insight OK — BTC: Prob_up 0.311 di bawah threshold 0.41 menandakan sinyal jual, RSI 70.1 menu..."
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "prediction.json written"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "pred_log.json updated"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "SVG card built, PNG=123KB"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
+      "level": "OK",
+      "message": "Run SUCCESS — 03 Nov 2026, 17:04 UTC"
     }
   ],
   "discord_runs": [
-    {
-      "ts": "2026-10-04T14:42:03.858078+00:00",
-      "level": "OK",
-      "message": "Discord image sent successfully"
-    },
     {
       "ts": "2026-10-04T18:23:53.639493+00:00",
       "level": "OK",
@@ -7065,6 +7060,11 @@
     },
     {
       "ts": "2026-11-03T09:10:34.302552+00:00",
+      "level": "OK",
+      "message": "Discord image sent successfully"
+    },
+    {
+      "ts": "2026-11-03T17:04:14.285788+00:00",
       "level": "OK",
       "message": "Discord image sent successfully"
     }
